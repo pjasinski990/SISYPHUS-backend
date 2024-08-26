@@ -37,7 +37,7 @@ class SecurityConfiguration(
             .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter::class.java)
             .exceptionHandling { exceptionHandling ->
                 exceptionHandling
-                    .authenticationEntryPoint { request, response, authException ->
+                    .authenticationEntryPoint { _, response, _ ->
                         response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized")
                     }
             }

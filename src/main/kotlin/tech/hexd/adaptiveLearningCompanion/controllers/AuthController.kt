@@ -12,7 +12,7 @@ import tech.hexd.adaptiveLearningCompanion.repositories.UserRepository
 import tech.hexd.adaptiveLearningCompanion.util.JwtUtil
 
 @RestController
-@RequestMapping("/api/auth")
+@RequestMapping("/auth")
 class AuthController @Autowired constructor(
     private val userRepository: UserRepository,
     private val passwordEncoder: PasswordEncoder,

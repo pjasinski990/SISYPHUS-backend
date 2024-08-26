@@ -9,10 +9,7 @@ import tech.hexd.adaptiveLearningCompanion.util.JwtUtil
 
 @RestController
 @RequestMapping("/admin")
-class AdminController(
-    private val userRepository: UserRepository,
-    private val jwtUtil: JwtUtil
-) {
+class AdminController {
 
     @GetMapping("/dashboard")
     fun getUser(): ResponseEntity<*> {

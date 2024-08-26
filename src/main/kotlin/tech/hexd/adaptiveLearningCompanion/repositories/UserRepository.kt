@@ -10,7 +10,7 @@ data class User (
     @Id
     val id: String? = null,
     val username: String,
-    val password: String
+    val password: String,
 )
 
 @Repository
