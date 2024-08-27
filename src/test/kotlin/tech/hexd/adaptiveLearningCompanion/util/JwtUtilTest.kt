@@ -1,3 +1,6 @@
+package tech.hexd.adaptiveLearningCompanion.util
+
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
@@ -7,11 +10,13 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
-@SpringBootTest(classes = [AdaptiveLearningCompanionApplication::class])
 class JwtUtilTest {
+    private lateinit var jwtUtil: JwtUtil;
 
-    @Autowired
-    private lateinit var jwtUtil: JwtUtil
+    @BeforeEach
+    fun setUp() {
+        jwtUtil = JwtUtil()
+    }
 
     @Test
     fun `should validate correct token`() {

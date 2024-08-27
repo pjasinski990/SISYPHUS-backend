@@ -26,9 +26,9 @@ class SecurityConfiguration(
             .authorizeHttpRequests { auth ->
                 auth
                     .requestMatchers("/auth/**").permitAll()
-                    .requestMatchers("/admin/**").hasAuthority("ROLE_ADMIN")
                     .requestMatchers("/user/**").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN")
                     .requestMatchers("/api/**").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN")
+                    .requestMatchers("/admin/**").hasAuthority("ROLE_ADMIN")
                     .anyRequest().authenticated()
             }
             .sessionManagement { session ->

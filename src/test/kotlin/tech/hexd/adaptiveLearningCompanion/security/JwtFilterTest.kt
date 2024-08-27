@@ -1,3 +1,5 @@
+package tech.hexd.adaptiveLearningCompanion.security
+
 import jakarta.servlet.FilterChain
 import org.junit.jupiter.api.BeforeEach
 import org.mockito.Mock
@@ -7,7 +9,6 @@ import org.springframework.mock.web.MockHttpServletRequest
 import org.springframework.mock.web.MockHttpServletResponse
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.core.userdetails.User
-import tech.hexd.adaptiveLearningCompanion.security.JwtFilter
 import tech.hexd.adaptiveLearningCompanion.services.UserDetailsServiceImpl
 import tech.hexd.adaptiveLearningCompanion.util.JwtUtil
 import kotlin.test.Test

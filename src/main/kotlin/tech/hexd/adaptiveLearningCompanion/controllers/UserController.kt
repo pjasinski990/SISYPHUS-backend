@@ -15,7 +15,6 @@ class UserController(
     private val userRepository: UserRepository,
     private val jwtUtil: JwtUtil
 ) {
-
     @GetMapping("/profile")
     fun getUser(): ResponseEntity<*> {
         val authentication = SecurityContextHolder.getContext().authentication
