@@ -1,5 +1,6 @@
 package tech.hexd.adaptiveLearningCompanion.controllers
 
+import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
 import org.springframework.security.crypto.password.PasswordEncoder
@@ -10,6 +11,7 @@ import org.springframework.web.bind.annotation.RestController
 import tech.hexd.adaptiveLearningCompanion.repositories.AppUser
 import tech.hexd.adaptiveLearningCompanion.repositories.AppUserRepository
 import tech.hexd.adaptiveLearningCompanion.util.JwtUtil
+import tech.hexd.adaptiveLearningCompanion.util.ResponseForger
 
 @RestController
 @RequestMapping("/auth")
@@ -21,26 +23,34 @@ class AuthController @Autowired constructor(
 
     @PostMapping("/register")
     fun register(@RequestBody registerRequest: RegisterRequest): ResponseEntity<*> {
+        logger.info("register request for ${registerRequest.username}")
+
         val appUser = AppUser(
             username = registerRequest.username,
             password = passwordEncoder.encode(registerRequest.password),
             roles = listOf("ROLE_USER")
         )
         appUserRepository.save(appUser)
-        return ResponseEntity.ok("User registered successfully")
+        return ResponseForger().ok("User registered successfully").build()
     }
 
     @PostMapping("/login")
     fun login(@RequestBody loginRequest: LoginRequest): ResponseEntity<*> {
+        logger.info("login request for ${loginRequest.username}")
+
         val user = appUserRepository.findByUsername(loginRequest.username)
-            ?: return ResponseEntity.badRequest().body("User not found")
+            ?: return ResponseForger().badRequestFailure("User does not exist").build()
 
         if (!passwordEncoder.matches(loginRequest.password, user.password)) {
-            return ResponseEntity.badRequest().body("Invalid password")
+            return ResponseForger().badRequestFailure("Invalid password").build()
         }
 
         val token = jwtUtil.generateToken(user.username)
-        return ResponseEntity.ok(mapOf("token" to token))
+        return ResponseForger().ok("Login successful").withField("token", token).build()
+    }
+
+    companion object {
+        private val logger = LoggerFactory.getLogger(AuthController::class.java)
     }
 }
 

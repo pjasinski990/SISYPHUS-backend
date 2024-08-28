@@ -1,5 +1,6 @@
 package tech.hexd.adaptiveLearningCompanion.controllers
 
+import org.slf4j.LoggerFactory
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.web.bind.annotation.GetMapping
@@ -12,15 +13,19 @@ import tech.hexd.adaptiveLearningCompanion.util.JwtUtil
 @RequestMapping("/user")
 class UserController(
     private val appUserRepository: AppUserRepository,
-    private val jwtUtil: JwtUtil
 ) {
     @GetMapping("/profile")
     fun getUser(): ResponseEntity<*> {
         val authentication = SecurityContextHolder.getContext().authentication
         val username = authentication.name
+        logger.info("profile request for $username")
 
         return appUserRepository.findByUsername(username)
             ?.let { ResponseEntity.ok(it) }
             ?: ResponseEntity.notFound().build<Any>()
+    }
+
+    companion object {
+        private val logger = LoggerFactory.getLogger(UserController::class.java)
     }
 }
