@@ -23,13 +23,13 @@ enum class TaskSize {
 data class Task (
     @Id
     val id: String? = null,
+    val ownerUsername: String? = null,
     val category: TaskCategory,
     val size: TaskSize,
     val description: String,
-    val userId: String? = null,
 )
 
 @Repository
 interface TaskRepository : MongoRepository<Task, String> {
-    fun findByUserId(userId: String): List<Task>
+    fun findByOwnerUsername(ownerUsername: String): List<Task>
 }

@@ -1,6 +1,7 @@
 package tech.hexd.adaptiveLearningCompanion.integration.controllers
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import org.hamcrest.Matchers.hasSize
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
@@ -9,8 +10,6 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
 import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.http.MediaType
 import org.springframework.security.test.context.support.WithMockUser
-import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers
 import tech.hexd.adaptiveLearningCompanion.controllers.TaskController
 import tech.hexd.adaptiveLearningCompanion.repositories.Task
@@ -41,13 +40,14 @@ class TaskControllerTest: BaseControllerTest() {
 
     @Test
     @WithMockUser(username = "someUsername", roles = ["USER"])
-    fun `should retrieve all tasks`() {
-        val tasks = List(3) { generateRandomTask() }
-        whenever(taskRepository.findAll()).thenReturn(tasks)
+    fun `should retrieve all tasks for user`() {
+        val tasks = List(3) { generateRandomTaskFor(testUsername) }
+        whenever(taskRepository.findByOwnerUsername(testUsername)).thenReturn(tasks)
 
         this.performGet("/api/tasks/")
             .andExpect(MockMvcResultMatchers.status().isOk)
             .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(MockMvcResultMatchers.jsonPath("$", hasSize<Any>(3)))
             .andExpect(MockMvcResultMatchers.content().json(jacksonObjectMapper().writeValueAsString(tasks))
             )
     }

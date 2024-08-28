@@ -7,28 +7,32 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
-import tech.hexd.adaptiveLearningCompanion.repositories.User
-import tech.hexd.adaptiveLearningCompanion.repositories.UserRepository
+import tech.hexd.adaptiveLearningCompanion.repositories.AppUser
+import tech.hexd.adaptiveLearningCompanion.repositories.AppUserRepository
 import tech.hexd.adaptiveLearningCompanion.util.JwtUtil
 
 @RestController
 @RequestMapping("/auth")
 class AuthController @Autowired constructor(
-    private val userRepository: UserRepository,
+    private val appUserRepository: AppUserRepository,
     private val passwordEncoder: PasswordEncoder,
     private val jwtUtil: JwtUtil
 ) {
 
     @PostMapping("/register")
     fun register(@RequestBody registerRequest: RegisterRequest): ResponseEntity<*> {
-        val user = User(username = registerRequest.username, password = passwordEncoder.encode(registerRequest.password))
-        userRepository.save(user)
+        val appUser = AppUser(
+            username = registerRequest.username,
+            password = passwordEncoder.encode(registerRequest.password),
+            roles = listOf("ROLE_USER")
+        )
+        appUserRepository.save(appUser)
         return ResponseEntity.ok("User registered successfully")
     }
 
     @PostMapping("/login")
     fun login(@RequestBody loginRequest: LoginRequest): ResponseEntity<*> {
-        val user = userRepository.findByUsername(loginRequest.username)
+        val user = appUserRepository.findByUsername(loginRequest.username)
             ?: return ResponseEntity.badRequest().body("User not found")
 
         if (!passwordEncoder.matches(loginRequest.password, user.password)) {

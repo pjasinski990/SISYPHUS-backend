@@ -14,8 +14,8 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.content
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import tech.hexd.adaptiveLearningCompanion.AdaptiveLearningCompanionApplication
-import tech.hexd.adaptiveLearningCompanion.repositories.User
-import tech.hexd.adaptiveLearningCompanion.repositories.UserRepository
+import tech.hexd.adaptiveLearningCompanion.repositories.AppUser
+import tech.hexd.adaptiveLearningCompanion.repositories.AppUserRepository
 import tech.hexd.adaptiveLearningCompanion.util.JwtUtil
 
 @SpringBootTest(classes = [AdaptiveLearningCompanionApplication::class])
@@ -23,7 +23,7 @@ import tech.hexd.adaptiveLearningCompanion.util.JwtUtil
 class AuthControllerTest {
     @BeforeEach
     fun setup(): Unit {
-        whenever(userRepository.findByUsername(any())).thenReturn(mockUser)
+        whenever(appUserRepository.findByUsername(any())).thenReturn(mockAppUser)
     }
 
     @Autowired
@@ -33,7 +33,7 @@ class AuthControllerTest {
     private lateinit var jwtUtil: JwtUtil
 
     @MockBean
-    private lateinit var userRepository: UserRepository;
+    private lateinit var appUserRepository: AppUserRepository;
 
     @MockBean
     private lateinit var passwordEncoder: PasswordEncoder
@@ -56,7 +56,8 @@ class AuthControllerTest {
 
     @Test
     fun `should allow admin endpoint access for admin role`() {
-        val adminToken = jwtUtil.generateToken("admin")
+        val adminToken = jwtUtil.generateAdminToken("someAdminUser")
+        whenever(appUserRepository.findByUsername(any())).thenReturn(mockAppAdminUser)
 
         mockMvc.perform(get("/admin/dashboard")
             .header("Authorization", "Bearer $adminToken"))
@@ -76,12 +77,21 @@ class AuthControllerTest {
         @BeforeAll
         @JvmStatic
         fun setupAll() {
-            mockUser = User(
+            mockAppUser = AppUser(
                 id = "someId",
                 username = "testUser",
                 password = "passwordHash",
+                roles = listOf("ROLE_USER")
+            )
+            mockAppAdminUser = AppUser(
+                id = "someId",
+                username = "testAdminUser",
+                password = "passwordHash",
+                roles = listOf("ROLE_ADMIN")
             )
         }
-        private lateinit var mockUser: User
+
+        private lateinit var mockAppUser: AppUser
+        private lateinit var mockAppAdminUser: AppUser
     }
 }

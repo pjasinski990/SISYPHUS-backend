@@ -6,17 +6,15 @@ import org.mockito.kotlin.whenever
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.http.MediaType
-import org.springframework.mock.http.server.reactive.MockServerHttpRequest.post
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.ResultActions
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers
 import tech.hexd.adaptiveLearningCompanion.controllers.TaskCreateRequest
 import tech.hexd.adaptiveLearningCompanion.repositories.Task
 import tech.hexd.adaptiveLearningCompanion.repositories.TaskCategory
 import tech.hexd.adaptiveLearningCompanion.repositories.TaskSize
-import tech.hexd.adaptiveLearningCompanion.repositories.UserRepository
+import tech.hexd.adaptiveLearningCompanion.repositories.AppUserRepository
 import tech.hexd.adaptiveLearningCompanion.services.UserDetailsServiceImpl
 import tech.hexd.adaptiveLearningCompanion.util.JwtUtil
 import java.util.*
@@ -29,7 +27,7 @@ abstract class BaseControllerTest {
     protected lateinit var jwtUtil: JwtUtil
 
     @MockBean
-    protected lateinit var userRepository: UserRepository
+    protected lateinit var appUserRepository: AppUserRepository
 
     @MockBean
     protected lateinit var userDetailsService: UserDetailsServiceImpl
@@ -72,14 +70,15 @@ abstract class BaseControllerTest {
         category: TaskCategory = TaskCategory.BLUE,
         size: TaskSize = TaskSize.BIG,
         description: String = "finish implementation of TaskController tests"
-    ) = Task(id, category, size, description)
+    ) = Task(id, testUsername, category, size, description)
 
-    protected fun generateRandomTask(): Task {
+    protected fun generateRandomTaskFor(username: String): Task {
         return Task(
             id = UUID.randomUUID().toString(),
+            ownerUsername = username,
             category = TaskCategory.entries.toTypedArray().random(),
             size = TaskSize.entries.toTypedArray().random(),
-            description = generateRandomDescription()
+            description = generateRandomDescription(),
         )
     }
 
@@ -89,4 +88,5 @@ abstract class BaseControllerTest {
         val nouns = listOf("feature", "bug", "module", "function", "algorithm")
 
         return "${adjectives.random()} task: ${verbs.random()} the ${nouns.random()}"
-    }}
+    }
+}

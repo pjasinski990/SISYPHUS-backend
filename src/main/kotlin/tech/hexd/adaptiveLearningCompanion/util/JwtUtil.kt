@@ -13,13 +13,21 @@ class JwtUtil {
 
 
     fun generateToken(username: String, expiration: Int = expirationMs): String {
-        val role = if (username == "admin") "ROLE_ADMIN" else "ROLE_USER"
-
         return Jwts.builder()
             .setSubject(username)
             .setIssuedAt(Date(System.currentTimeMillis()))
             .setExpiration(Date(System.currentTimeMillis() + expiration))
-            .claim("roles", listOf(role))
+            .claim("roles", listOf("ROLE_USER"))
+            .signWith(secret)
+            .compact()
+    }
+
+    fun generateAdminToken(username: String, expiration: Int = expirationMs): String {
+        return Jwts.builder()
+            .setSubject(username)
+            .setIssuedAt(Date(System.currentTimeMillis()))
+            .setExpiration(Date(System.currentTimeMillis() + expiration))
+            .claim("roles", listOf("ROLE_ADMIN"))
             .signWith(secret)
             .compact()
     }
