@@ -25,12 +25,11 @@ class AuthController @Autowired constructor(
     fun register(@RequestBody registerRequest: RegisterRequest): ResponseEntity<*> {
         logger.info("register request for ${registerRequest.username}")
 
-        val appUser = AppUser(
-            username = registerRequest.username,
-            password = passwordEncoder.encode(registerRequest.password),
-            roles = listOf("ROLE_USER")
-        )
-        appUserRepository.save(appUser)
+        if (appUserRepository.findByUsername(registerRequest.username) != null) {
+            return ResponseForger().badRequestFailure("User already exists").build()
+        }
+
+        this.registerUser(registerRequest.username, registerRequest.password)
         return ResponseForger().ok("User registered successfully").build()
     }
 
@@ -47,6 +46,15 @@ class AuthController @Autowired constructor(
 
         val token = jwtUtil.generateToken(user.username)
         return ResponseForger().ok("Login successful").withField("token", token).build()
+    }
+
+    private fun registerUser(username: String, password: String) {
+        val appUser = AppUser(
+            username = username,
+            password = passwordEncoder.encode(password),
+            roles = listOf("ROLE_USER")
+        )
+        appUserRepository.save(appUser)
     }
 
     companion object {
