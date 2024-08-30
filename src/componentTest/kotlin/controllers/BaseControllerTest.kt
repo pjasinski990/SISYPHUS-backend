@@ -1,4 +1,4 @@
-package tech.hexd.adaptiveLearningCompanion.integration.controllers
+package controllers
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import org.junit.jupiter.api.BeforeEach
@@ -11,10 +11,7 @@ import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.ResultActions
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
 import tech.hexd.adaptiveLearningCompanion.controllers.TaskCreateRequest
-import tech.hexd.adaptiveLearningCompanion.repositories.Task
-import tech.hexd.adaptiveLearningCompanion.repositories.TaskCategory
-import tech.hexd.adaptiveLearningCompanion.repositories.TaskSize
-import tech.hexd.adaptiveLearningCompanion.repositories.AppUserRepository
+import tech.hexd.adaptiveLearningCompanion.repositories.*
 import tech.hexd.adaptiveLearningCompanion.services.UserDetailsServiceImpl
 import tech.hexd.adaptiveLearningCompanion.util.JwtUtil
 import java.util.*

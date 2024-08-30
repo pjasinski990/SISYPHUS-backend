@@ -18,6 +18,14 @@ repositories {
 	mavenCentral()
 }
 
+val componentTestImplementation: Configuration by configurations.creating {
+	extendsFrom(configurations.testImplementation.get())
+}
+
+val componentTestRuntimeOnly: Configuration by configurations.creating {
+	extendsFrom(configurations.testRuntimeOnly.get())
+}
+
 dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-web")
 	implementation("org.springframework.boot:spring-boot-starter-logging")
@@ -35,6 +43,15 @@ dependencies {
 	testImplementation("org.mockito.kotlin:mockito-kotlin:4.1.0")
 	testImplementation("org.springframework.security:spring-security-test")
 
+	componentTestImplementation("org.springframework.boot:spring-boot-starter-test")
+	componentTestImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
+	componentTestImplementation("org.mockito.kotlin:mockito-kotlin:4.1.0")
+	componentTestImplementation("org.springframework.security:spring-security-test")
+	componentTestImplementation("io.jsonwebtoken:jjwt-api:0.11.5")
+
+	componentTestRuntimeOnly("io.jsonwebtoken:jjwt-impl:0.11.5")
+	componentTestRuntimeOnly("io.jsonwebtoken:jjwt-jackson:0.11.5")
+
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
@@ -44,6 +61,33 @@ kotlin {
 	}
 }
 
+sourceSets {
+	create("componentTest") {
+		compileClasspath += sourceSets.main.get().output
+		runtimeClasspath += sourceSets.main.get().output
+		kotlin {
+			srcDir("src/componentTest/kotlin")
+		}
+		resources {
+			srcDir("src/componentTest/resources")
+		}
+	}
+}
+
+tasks.register<Test>("componentTest") {
+	description = "Runs component tests."
+	group = "verification"
+
+	testClassesDirs = sourceSets["componentTest"].output.classesDirs
+	classpath = sourceSets["componentTest"].runtimeClasspath
+
+	mustRunAfter(tasks.test)
+}
+
 tasks.withType<Test> {
 	useJUnitPlatform()
+}
+
+tasks.check {
+	dependsOn("componentTest")
 }

@@ -1,20 +1,19 @@
 package tech.hexd.adaptiveLearningCompanion.controllers
 
 import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.Authentication
 import org.springframework.security.core.context.SecurityContext
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.util.UriComponentsBuilder
-import tech.hexd.adaptiveLearningCompanion.repositories.Task
-import tech.hexd.adaptiveLearningCompanion.repositories.TaskCategory
-import tech.hexd.adaptiveLearningCompanion.repositories.TaskRepository
-import tech.hexd.adaptiveLearningCompanion.repositories.TaskSize
+import tech.hexd.adaptiveLearningCompanion.repositories.*
 
 @RestController
 @RequestMapping("/api/tasks")
 class TaskController (
-    private val taskRepository: TaskRepository
+    @Autowired private val taskRepository: TaskRepository,
+    @Autowired private val dailyPlanRepository: DailyPlanRepository,
 ) {
     @GetMapping("/")
     fun getAll(authentication: Authentication): ResponseEntity<*> {

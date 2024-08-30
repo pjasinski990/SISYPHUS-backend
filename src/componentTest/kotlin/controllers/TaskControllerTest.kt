@@ -1,4 +1,4 @@
-package tech.hexd.adaptiveLearningCompanion.integration.controllers
+package controllers
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import org.hamcrest.Matchers.hasSize
@@ -10,15 +10,22 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
 import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.http.MediaType
 import org.springframework.security.test.context.support.WithMockUser
+import org.springframework.test.context.ContextConfiguration
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers
+import tech.hexd.adaptiveLearningCompanion.AdaptiveLearningCompanionApplication
 import tech.hexd.adaptiveLearningCompanion.controllers.TaskController
+import tech.hexd.adaptiveLearningCompanion.repositories.DailyPlanRepository
 import tech.hexd.adaptiveLearningCompanion.repositories.Task
 import tech.hexd.adaptiveLearningCompanion.repositories.TaskRepository
 
+@ContextConfiguration(classes = [AdaptiveLearningCompanionApplication::class])
 @WebMvcTest(TaskController::class)
 class TaskControllerTest: BaseControllerTest() {
     @MockBean
     private lateinit var taskRepository: TaskRepository
+
+    @MockBean
+    private lateinit var dailyPlanRepository: DailyPlanRepository
 
     private val testTaskCreateRequest = createTestTaskCreateRequest()
     private val testSavedTaskResponse = createTestSavedTaskResponse()
