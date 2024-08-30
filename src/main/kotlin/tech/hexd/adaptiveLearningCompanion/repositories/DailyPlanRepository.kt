@@ -12,13 +12,23 @@ data class DailyPlan (
     val id: String? = null,
     val ownerUsername: String? = null,
     val day: LocalDate,
-    val category: TaskCategory,
-    val size: TaskSize,
-    val description: String,
-)
+    val todo: List<Task>,
+    val done: List<Task>,
+) {
+    companion object {
+        fun newEmptyForUserAndDate(username: String, date: LocalDate): DailyPlan {
+            return DailyPlan(
+                ownerUsername = username,
+                day = date,
+                todo = emptyList(),
+                done = emptyList(),
+            )
+        }
+    }
+}
 
 @Repository
 interface DailyPlanRepository : MongoRepository<DailyPlan, String> {
     fun findByOwnerUsername(ownerUsername: String): List<DailyPlan>
-    fun findByOwnerUsernameAndDay(ownerUsername: String, day: LocalDate): List<DailyPlan>
+    fun findByOwnerUsernameAndDay(ownerUsername: String, day: LocalDate): DailyPlan?
 }

@@ -7,17 +7,21 @@ class ResponseForger {
     private var status: HttpStatus = HttpStatus.OK
     private val responseBody: MutableMap<String, Any> = mutableMapOf()
 
-    fun ok(message: String): ResponseForger {
+    fun ok(message: String? = null): ResponseForger {
         status = HttpStatus.OK
         responseBody["success"] = true
-        responseBody["message"] = message
+        if (message != null) {
+            responseBody["message"] = message
+        }
         return this
     }
 
-    fun badRequestFailure(message: String): ResponseForger {
+    fun badRequestFailure(message: String? = null): ResponseForger {
         status = HttpStatus.BAD_REQUEST
         responseBody["success"] = false
-        responseBody["message"] = message
+        if (message != null) {
+            responseBody["message"] = message
+        }
         return this
     }
 

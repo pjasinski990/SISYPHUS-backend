@@ -6,26 +6,17 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.whenever
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
-import org.springframework.boot.test.mock.mockito.MockBean
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
+import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.http.MediaType
 import org.springframework.security.test.context.support.WithMockUser
-import org.springframework.test.context.ContextConfiguration
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers
 import tech.hexd.adaptiveLearningCompanion.AdaptiveLearningCompanionApplication
-import tech.hexd.adaptiveLearningCompanion.controllers.TaskController
-import tech.hexd.adaptiveLearningCompanion.repositories.DailyPlanRepository
 import tech.hexd.adaptiveLearningCompanion.repositories.Task
-import tech.hexd.adaptiveLearningCompanion.repositories.TaskRepository
 
-@ContextConfiguration(classes = [AdaptiveLearningCompanionApplication::class])
-@WebMvcTest(TaskController::class)
+@AutoConfigureMockMvc
+@SpringBootTest(classes = [AdaptiveLearningCompanionApplication::class])
 class TaskControllerTest: BaseControllerTest() {
-    @MockBean
-    private lateinit var taskRepository: TaskRepository
-
-    @MockBean
-    private lateinit var dailyPlanRepository: DailyPlanRepository
 
     private val testTaskCreateRequest = createTestTaskCreateRequest()
     private val testSavedTaskResponse = createTestSavedTaskResponse()
@@ -37,10 +28,10 @@ class TaskControllerTest: BaseControllerTest() {
 
     @Test
     @WithMockUser(username = "someUsername", roles = ["USER"])
-    fun `should create a task`() {
+    fun `should create a task when calling createNewTask`() {
         whenever(taskRepository.save(any<Task>())).thenReturn(testSavedTaskResponse)
 
-        this.performPost("/api/tasks/new", testTaskCreateRequest)
+        this.performAuthenticatedPost("/api/tasks/new", testTaskCreateRequest)
             .andExpect(MockMvcResultMatchers.status().isCreated)
             .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
     }
@@ -49,12 +40,25 @@ class TaskControllerTest: BaseControllerTest() {
     @WithMockUser(username = "someUsername", roles = ["USER"])
     fun `should retrieve all tasks for user`() {
         val tasks = List(3) { generateRandomTaskFor(testUsername) }
-        whenever(taskRepository.findByOwnerUsername(testUsername)).thenReturn(tasks)
+        whenever(taskRepository.findByOwnerUsername(any<String>())).thenReturn(tasks)
 
-        this.performGet("/api/tasks/")
+        this.performAuthenticatedGet("/api/tasks/")
             .andExpect(MockMvcResultMatchers.status().isOk)
             .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(MockMvcResultMatchers.jsonPath("$", hasSize<Any>(3)))
+            .andExpect(MockMvcResultMatchers.content().json(jacksonObjectMapper().writeValueAsString(tasks))
+            )
+    }
+
+    @Test
+    @WithMockUser(username = "someUsername", roles = ["USER"])
+    fun `should return empty list when retrieving all tasks but no tasks available`() {
+        val tasks = emptyList<Task>()
+        whenever(taskRepository.findByOwnerUsername(any<String>())).thenReturn(tasks)
+
+        this.performAuthenticatedGet("/api/tasks/")
+            .andExpect(MockMvcResultMatchers.status().isOk)
+            .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(MockMvcResultMatchers.content().json(jacksonObjectMapper().writeValueAsString(tasks))
             )
     }

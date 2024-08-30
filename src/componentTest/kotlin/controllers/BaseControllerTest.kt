@@ -14,6 +14,7 @@ import tech.hexd.adaptiveLearningCompanion.controllers.TaskCreateRequest
 import tech.hexd.adaptiveLearningCompanion.repositories.*
 import tech.hexd.adaptiveLearningCompanion.services.UserDetailsServiceImpl
 import tech.hexd.adaptiveLearningCompanion.util.JwtUtil
+import java.time.LocalDate
 import java.util.*
 
 abstract class BaseControllerTest {
@@ -25,6 +26,12 @@ abstract class BaseControllerTest {
 
     @MockBean
     protected lateinit var appUserRepository: AppUserRepository
+
+    @MockBean
+    protected lateinit var taskRepository: TaskRepository
+
+    @MockBean
+    protected lateinit var dailyPlanRepository: DailyPlanRepository
 
     @MockBean
     protected lateinit var userDetailsService: UserDetailsServiceImpl
@@ -40,7 +47,7 @@ abstract class BaseControllerTest {
         whenever(jwtUtil.extractRoles(testToken)).thenReturn(arrayListOf("ROLE_USER"))
     }
 
-    protected fun performPost(url: String, content: Any): ResultActions =
+    protected fun performAuthenticatedPost(url: String, content: Any): ResultActions =
         mockMvc.perform(
             MockMvcRequestBuilders.post(url)
                 .header("Authorization", "Bearer $testToken")
@@ -49,7 +56,7 @@ abstract class BaseControllerTest {
                 .content(jacksonObjectMapper().writeValueAsString(content))
         )
 
-    protected fun performGet(url: String): ResultActions =
+    protected fun performAuthenticatedGet(url: String): ResultActions =
         mockMvc.perform(
             MockMvcRequestBuilders.get(url)
                 .header("Authorization", "Bearer $testToken")
@@ -85,5 +92,17 @@ abstract class BaseControllerTest {
         val nouns = listOf("feature", "bug", "module", "function", "algorithm")
 
         return "${adjectives.random()} task: ${verbs.random()} the ${nouns.random()}"
+    }
+
+    protected fun createRandomDailyPlanFor(username: String, date: LocalDate): DailyPlan {
+        val todo = List(3) { generateRandomTaskFor(username) }
+        val done = List(3) { generateRandomTaskFor(username) }
+        return DailyPlan(
+            id = UUID.randomUUID().toString(),
+            ownerUsername = username,
+            day = date,
+            todo = todo,
+            done = done,
+        )
     }
 }
