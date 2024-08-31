@@ -1,9 +1,17 @@
 package controllers
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import org.hamcrest.BaseMatcher
+import org.hamcrest.Description
 import org.junit.jupiter.api.BeforeEach
 import org.mockito.kotlin.whenever
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration
+import org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration
+import org.springframework.boot.test.autoconfigure.data.mongo.AutoConfigureDataMongo
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.http.MediaType
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf
@@ -11,12 +19,17 @@ import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.ResultActions
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
 import tech.hexd.adaptiveLearningCompanion.controllers.TaskCreateRequest
+import tech.hexd.adaptiveLearningCompanion.controllers.UserController
 import tech.hexd.adaptiveLearningCompanion.repositories.*
 import tech.hexd.adaptiveLearningCompanion.services.UserDetailsServiceImpl
 import tech.hexd.adaptiveLearningCompanion.util.JwtUtil
 import java.time.LocalDate
 import java.util.*
 
+@Suppress("SpringJavaInjectionPointsAutowiringInspection")
+@AutoConfigureMockMvc
+@AutoConfigureDataMongo
+@EnableAutoConfiguration(exclude=[MongoAutoConfiguration::class])
 abstract class BaseControllerTest {
     @Autowired
     protected lateinit var mockMvc: MockMvc
@@ -36,9 +49,19 @@ abstract class BaseControllerTest {
     @MockBean
     protected lateinit var userDetailsService: UserDetailsServiceImpl
 
-    protected val testToken = "someValidToken"
-    protected val testUsername = "someUsername"
-    protected val testUserId = "someUserId"
+    companion object {
+        const val TEST_TOKEN = "someValidToken"
+        const val TEST_USERNAME = "someUsername"
+        const val TEST_USER_ID = "someUserId"
+
+        protected val logger: Logger = LoggerFactory.getLogger(UserController::class.java)
+    }
+
+    protected val objectMapper = jacksonObjectMapper()
+
+    protected val testToken = BaseControllerTest.TEST_TOKEN
+    protected val testUsername = BaseControllerTest.TEST_USERNAME
+    protected val testUserId = BaseControllerTest.TEST_USER_ID
 
     @BeforeEach
     fun baseSetup() {
@@ -84,6 +107,18 @@ abstract class BaseControllerTest {
             size = TaskSize.entries.toTypedArray().random(),
             description = generateRandomDescription(),
         )
+    }
+
+    protected fun matchesJsonOf(expected: Any) = object : BaseMatcher<Any>() {
+        override fun matches(actual: Any?): Boolean {
+            val expectedJson = objectMapper.writeValueAsString(expected)
+            val actualJson = objectMapper.writeValueAsString(actual)
+            return expectedJson == actualJson
+        }
+
+        override fun describeTo(description: Description) {
+            description.appendText("matches JSON representation of ").appendValue(expected)
+        }
     }
 
     private fun generateRandomDescription(): String {

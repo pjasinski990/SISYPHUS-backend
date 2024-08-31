@@ -18,6 +18,7 @@ import tech.hexd.adaptiveLearningCompanion.repositories.AppUser
 import tech.hexd.adaptiveLearningCompanion.repositories.AppUserRepository
 import tech.hexd.adaptiveLearningCompanion.util.JwtUtil
 
+@Suppress("SpringJavaInjectionPointsAutowiringInspection")
 @SpringBootTest(classes = [AdaptiveLearningCompanionApplication::class])
 @AutoConfigureMockMvc
 class AuthControllerTest {

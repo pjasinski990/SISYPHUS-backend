@@ -1,7 +1,9 @@
 package tech.hexd.adaptiveLearningCompanion.services
 
+import org.slf4j.LoggerFactory
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.stereotype.Service
+import tech.hexd.adaptiveLearningCompanion.controllers.UserController
 import tech.hexd.adaptiveLearningCompanion.repositories.DailyPlan
 import tech.hexd.adaptiveLearningCompanion.repositories.DailyPlanRepository
 import java.time.LocalDate
@@ -24,5 +26,9 @@ class DailyPlanService(private val dailyPlanRepository: DailyPlanRepository) {
 
     private fun getCurrentlyLoggedUsername(): String {
         return SecurityContextHolder.getContext().authentication.name
+    }
+
+    companion object {
+        private val logger = LoggerFactory.getLogger(UserController::class.java)
     }
 }

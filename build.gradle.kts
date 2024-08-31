@@ -34,6 +34,7 @@ dependencies {
 	implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
 	implementation("org.jetbrains.kotlin:kotlin-reflect")
 	implementation("io.jsonwebtoken:jjwt-api:0.11.5")
+	implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
 
 	runtimeOnly("io.jsonwebtoken:jjwt-impl:0.11.5")
 	runtimeOnly("io.jsonwebtoken:jjwt-jackson:0.11.5")
@@ -42,12 +43,14 @@ dependencies {
 	testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
 	testImplementation("org.mockito.kotlin:mockito-kotlin:4.1.0")
 	testImplementation("org.springframework.security:spring-security-test")
+	testImplementation("de.flapdoodle.embed:de.flapdoodle.embed.mongo:4.17.0")
 
 	componentTestImplementation("org.springframework.boot:spring-boot-starter-test")
 	componentTestImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
 	componentTestImplementation("org.mockito.kotlin:mockito-kotlin:4.1.0")
 	componentTestImplementation("org.springframework.security:spring-security-test")
 	componentTestImplementation("io.jsonwebtoken:jjwt-api:0.11.5")
+	componentTestImplementation("de.flapdoodle.embed:de.flapdoodle.embed.mongo:4.17.0")
 
 	componentTestRuntimeOnly("io.jsonwebtoken:jjwt-impl:0.11.5")
 	componentTestRuntimeOnly("io.jsonwebtoken:jjwt-jackson:0.11.5")
@@ -90,4 +93,8 @@ tasks.withType<Test> {
 
 tasks.check {
 	dependsOn("componentTest")
+}
+
+tasks.withType<ProcessResources> {
+	duplicatesStrategy = DuplicatesStrategy.INCLUDE
 }

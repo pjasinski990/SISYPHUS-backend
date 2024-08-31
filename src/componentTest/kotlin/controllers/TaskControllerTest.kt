@@ -6,7 +6,6 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.whenever
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.http.MediaType
 import org.springframework.security.test.context.support.WithMockUser
@@ -14,7 +13,6 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers
 import tech.hexd.adaptiveLearningCompanion.AdaptiveLearningCompanionApplication
 import tech.hexd.adaptiveLearningCompanion.repositories.Task
 
-@AutoConfigureMockMvc
 @SpringBootTest(classes = [AdaptiveLearningCompanionApplication::class])
 class TaskControllerTest: BaseControllerTest() {
 

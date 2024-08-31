@@ -1,5 +1,9 @@
 package tech.hexd.adaptiveLearningCompanion.repositories
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize
+import com.fasterxml.jackson.databind.annotation.JsonSerialize
+import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateDeserializer
+import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateSerializer
 import org.springframework.data.annotation.Id
 import org.springframework.data.mongodb.core.mapping.Document
 import org.springframework.data.mongodb.repository.MongoRepository
@@ -11,6 +15,8 @@ data class DailyPlan (
     @Id
     val id: String? = null,
     val ownerUsername: String? = null,
+    @JsonDeserialize(using = LocalDateDeserializer::class)
+    @JsonSerialize(using = LocalDateSerializer::class)
     val day: LocalDate,
     val todo: List<Task>,
     val done: List<Task>,
