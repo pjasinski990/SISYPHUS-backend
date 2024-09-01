@@ -1,11 +1,17 @@
-version: '3'
+version: '3.8'
 services:
   spring-app:
-    build: .
+    build:
+      context: .
+      dockerfile: ${DOCKERFILE:-Dockerfile}
     ports:
       - "8080:8080"
+    volumes:
+      - ${APP_VOLUME:-./}:/app
+      - ${GRADLE_CACHE_VOLUME:-gradle-cache}:/root/.gradle
     environment:
       - SPRING_DATA_MONGODB_URI=mongodb://mongodb:27017/adaptive_learning_companion
+      - SPRING_PROFILES_ACTIVE=${SPRING_PROFILE:-default}
     depends_on:
       - mongodb
 
@@ -18,4 +24,4 @@ services:
 
 volumes:
   mongodb_data:
-
+  gradle-cache:

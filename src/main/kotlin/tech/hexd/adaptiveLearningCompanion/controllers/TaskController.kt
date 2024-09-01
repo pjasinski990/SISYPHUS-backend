@@ -1,6 +1,5 @@
 package tech.hexd.adaptiveLearningCompanion.controllers
 
-import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.Authentication
@@ -19,24 +18,18 @@ class TaskController (
 ) {
     @GetMapping("/")
     fun getAllTasks(authentication: Authentication): ResponseEntity<*> {
-        logger.info("getAll tasks request for ${authentication.name}")
         val tasks = taskService.getAllTasksForCurrentUser()
         return tasks.let { ResponseEntity.ok(it) }
     }
 
     @PostMapping("/new")
     fun createNewTask(@RequestBody req: TaskCreateRequest, authentication: Authentication, uriBuilder: UriComponentsBuilder): ResponseEntity<*> {
-        logger.info("new task request for ${authentication.name}")
         val savedTask = taskService.createNewTaskForCurrentUser(req.toTask());
 
         val location = uriBuilder.path("/api/tasks/{id}")
             .buildAndExpand(savedTask.id)
             .toUri()
         return ResponseEntity.created(location).body(savedTask)
-    }
-
-    companion object {
-        private val logger = LoggerFactory.getLogger(TaskController::class.java)
     }
 }
 

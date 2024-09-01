@@ -1,6 +1,5 @@
 package tech.hexd.adaptiveLearningCompanion.controllers
 
-import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
 import org.springframework.security.crypto.password.PasswordEncoder
@@ -23,8 +22,6 @@ class AuthController @Autowired constructor(
 
     @PostMapping("/register")
     fun register(@RequestBody registerRequest: RegisterRequest): ResponseEntity<*> {
-        logger.info("register request for ${registerRequest.username}")
-
         if (appUserRepository.findByUsername(registerRequest.username) != null) {
             return ResponseForger().badRequestFailure("User already exists").build()
         }
@@ -35,8 +32,6 @@ class AuthController @Autowired constructor(
 
     @PostMapping("/login")
     fun login(@RequestBody loginRequest: LoginRequest): ResponseEntity<*> {
-        logger.info("login request for ${loginRequest.username}")
-
         val user = appUserRepository.findByUsername(loginRequest.username)
             ?: return ResponseForger().badRequestFailure("User does not exist").build()
 
@@ -55,10 +50,6 @@ class AuthController @Autowired constructor(
             roles = listOf("ROLE_USER")
         )
         appUserRepository.save(appUser)
-    }
-
-    companion object {
-        private val logger = LoggerFactory.getLogger(AuthController::class.java)
     }
 }
 
