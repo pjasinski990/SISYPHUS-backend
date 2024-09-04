@@ -9,6 +9,7 @@ import tech.hexd.adaptiveLearningCompanion.repositories.Task
 import tech.hexd.adaptiveLearningCompanion.repositories.TaskCategory
 import tech.hexd.adaptiveLearningCompanion.repositories.TaskSize
 import tech.hexd.adaptiveLearningCompanion.services.TaskService
+import tech.hexd.adaptiveLearningCompanion.util.ContextHelper
 import java.time.LocalTime
 
 @RestController
@@ -36,14 +37,17 @@ class TaskController (
 data class TaskCreateRequest(
     val category: TaskCategory,
     val size: TaskSize,
+    val title: String,
     val description: String,
     val startTime: LocalTime? = null
 )
 
 fun TaskCreateRequest.toTask(): Task {
     return Task(
+        ownerUsername = ContextHelper.getCurrentlyLoggedUsername(),
         category = this.category,
         size = this.size,
+        title = this.title,
         description = this.description,
     )
 }

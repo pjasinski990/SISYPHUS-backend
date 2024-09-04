@@ -89,15 +89,17 @@ abstract class BaseControllerTest {
     protected fun createTestTaskCreateRequest(
         category: TaskCategory = TaskCategory.BLUE,
         size: TaskSize = TaskSize.BIG,
+        title: String = "TaskController tests implementation",
         description: String = "finish implementation of TaskController tests"
-    ) = TaskCreateRequest(category, size, description)
+    ) = TaskCreateRequest(category, size, title, description)
 
     protected fun createTestSavedTaskResponse(
         id: String = "someSavedTaskId",
         category: TaskCategory = TaskCategory.BLUE,
         size: TaskSize = TaskSize.BIG,
+        title: String = "TaskController tests implementation",
         description: String = "finish implementation of TaskController tests"
-    ) = Task(id, testUsername, category, size, description)
+    ) = Task(id, testUsername, category, size, title, description)
 
     protected fun generateRandomTaskFor(username: String): Task {
         return Task(
@@ -105,6 +107,7 @@ abstract class BaseControllerTest {
             ownerUsername = username,
             category = TaskCategory.entries.toTypedArray().random(),
             size = TaskSize.entries.toTypedArray().random(),
+            title = generateRandomTitle(),
             description = generateRandomDescription(),
         )
     }
@@ -119,6 +122,14 @@ abstract class BaseControllerTest {
         override fun describeTo(description: Description) {
             description.appendText("matches JSON representation of ").appendValue(expected)
         }
+    }
+
+    private fun generateRandomTitle(): String {
+        val prefixes = listOf("Task", "Issue", "Project", "Work Item", "Assignment")
+        val actions = listOf("Review", "Update", "Create", "Analyze", "Fix")
+        val subjects = listOf("Code", "Documentation", "Database", "UI", "API")
+
+        return "${prefixes.random()}: ${actions.random()} ${subjects.random()}"
     }
 
     private fun generateRandomDescription(): String {

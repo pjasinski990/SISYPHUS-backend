@@ -24,9 +24,10 @@ enum class TaskSize {
 data class Task (
     @Id
     val id: String? = null,
-    val ownerUsername: String? = null,
+    val ownerUsername: String,
     val category: TaskCategory,
     val size: TaskSize,
+    val title: String,
     val description: String,
     val startTime: LocalTime? = null,
 )
