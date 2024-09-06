@@ -24,6 +24,7 @@ import tech.hexd.adaptiveLearningCompanion.repositories.*
 import tech.hexd.adaptiveLearningCompanion.services.UserDetailsServiceImpl
 import tech.hexd.adaptiveLearningCompanion.util.JwtUtil
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.util.*
 
 @Suppress("SpringJavaInjectionPointsAutowiringInspection")
@@ -99,7 +100,7 @@ abstract class BaseControllerTest {
         size: TaskSize = TaskSize.BIG,
         title: String = "TaskController tests implementation",
         description: String = "finish implementation of TaskController tests"
-    ) = Task(id, testUsername, category, size, title, description)
+    ) = Task(id, testUsername, category, size, title, description, LocalDateTime.now())
 
     protected fun generateRandomTaskFor(username: String): Task {
         return Task(
@@ -109,6 +110,7 @@ abstract class BaseControllerTest {
             size = TaskSize.entries.toTypedArray().random(),
             title = generateRandomTitle(),
             description = generateRandomDescription(),
+            createdAt = LocalDateTime.now(),
         )
     }
 
@@ -118,9 +120,33 @@ abstract class BaseControllerTest {
             val actualJson = objectMapper.writeValueAsString(actual)
             return expectedJson == actualJson
         }
-
         override fun describeTo(description: Description) {
             description.appendText("matches JSON representation of ").appendValue(expected)
+        }
+    }
+
+    fun matchesTaskList(expected: List<Task>) = object : BaseMatcher<List<Map<String, Any>>>() {
+        override fun matches(actual: Any?): Boolean {
+            if (actual !is List<*>) return false
+            if (actual.size != expected.size) return false
+
+            return actual.zip(expected).all { (actualItem, expectedTask) ->
+                actualItem is Map<*, *> && actualItem["id"] == expectedTask.id
+            }
+        }
+
+        override fun describeTo(description: Description) {
+            description.appendText("a list of ${expected.size} tasks with ids: ")
+                .appendValueList("[", ", ", "]", expected.map { it.id })
+        }
+
+        override fun describeMismatch(item: Any?, description: Description) {
+            if (item !is List<*>) {
+                description.appendText("was not a list")
+                return
+            }
+            description.appendText("was a list of ${item.size} tasks with ids: ")
+                .appendValueList("[", ", ", "]", item.map { (it as? Map<*, *>)?.get("id") })
         }
     }
 

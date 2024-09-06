@@ -1,5 +1,6 @@
 package controllers
 
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
@@ -32,8 +33,8 @@ class DailyPlanControllerTest: BaseControllerTest() {
             .andExpect(MockMvcResultMatchers.jsonPath("$.plan.id").value(testDailyPlan.id))
             .andExpect(MockMvcResultMatchers.jsonPath("$.plan.ownerUsername").value(testDailyPlan.ownerUsername))
             .andExpect(MockMvcResultMatchers.jsonPath("$.plan.day").value(testDate.toString()))
-            .andExpect(MockMvcResultMatchers.jsonPath("$.plan.todo").value(matchesJsonOf(testDailyPlan.todo)))
-            .andExpect(MockMvcResultMatchers.jsonPath("$.plan.done").value(matchesJsonOf(testDailyPlan.done)))
+            .andExpect(MockMvcResultMatchers.jsonPath("$.plan.todo").value(matchesTaskList(testDailyPlan.todo)))
+            .andExpect(MockMvcResultMatchers.jsonPath("$.plan.done").value(matchesTaskList(testDailyPlan.done)))
     }
 
     @Test
@@ -50,5 +51,7 @@ class DailyPlanControllerTest: BaseControllerTest() {
             .andExpect(MockMvcResultMatchers.jsonPath("$.success").value(true))
             .andExpect(MockMvcResultMatchers.jsonPath("$.plan.ownerUsername").value(expectedNewPlan.ownerUsername))
             .andExpect(MockMvcResultMatchers.jsonPath("$.plan.day").value(testDate.toString()))
+            .andExpect(MockMvcResultMatchers.jsonPath("$.plan.todo").value(matchesJsonOf(expectedNewPlan.todo)))
+            .andExpect(MockMvcResultMatchers.jsonPath("$.plan.done").value(matchesJsonOf(expectedNewPlan.done)))
     }
 }

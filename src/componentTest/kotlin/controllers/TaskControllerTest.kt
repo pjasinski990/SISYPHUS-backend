@@ -44,7 +44,7 @@ class TaskControllerTest: BaseControllerTest() {
             .andExpect(MockMvcResultMatchers.status().isOk)
             .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(MockMvcResultMatchers.jsonPath("$", hasSize<Any>(3)))
-            .andExpect(MockMvcResultMatchers.content().json(jacksonObjectMapper().writeValueAsString(tasks))
+            .andExpect(MockMvcResultMatchers.jsonPath("$").value(matchesTaskList(tasks))
             )
     }
 

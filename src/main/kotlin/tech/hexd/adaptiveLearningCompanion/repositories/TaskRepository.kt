@@ -1,9 +1,17 @@
 package tech.hexd.adaptiveLearningCompanion.repositories
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize
+import com.fasterxml.jackson.databind.annotation.JsonSerialize
+import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateDeserializer
+import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer
+import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateSerializer
+import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer
 import org.springframework.data.annotation.Id
 import org.springframework.data.mongodb.core.mapping.Document
 import org.springframework.data.mongodb.repository.MongoRepository
+import org.springframework.format.annotation.DateTimeFormat
 import org.springframework.stereotype.Repository
+import java.time.LocalDateTime
 import java.time.LocalTime
 
 enum class TaskCategory {
@@ -29,6 +37,9 @@ data class Task (
     val size: TaskSize,
     val title: String,
     val description: String,
+    @JsonDeserialize(using = LocalDateTimeDeserializer::class)
+    @JsonSerialize(using = LocalDateTimeSerializer::class)
+    val createdAt: LocalDateTime,
     val startTime: LocalTime? = null,
 )
 
