@@ -9,7 +9,7 @@ import java.time.LocalDate
 @Document(collection = "daily_plan")
 data class DailyPlan (
     @Id
-    val id: String? = null,
+    val id: String,
     val ownerUsername: String? = null,
     val day: LocalDate,
     val todo: List<Task>,
@@ -18,6 +18,7 @@ data class DailyPlan (
     companion object {
         fun newEmptyForUserAndDate(username: String, date: LocalDate): DailyPlan {
             return DailyPlan(
+                id = "${username}:${date}",
                 ownerUsername = username,
                 day = date,
                 todo = emptyList(),

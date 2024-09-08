@@ -56,6 +56,7 @@ data class DailyPlanCreateRequest(
 )
 
 fun DailyPlanCreateRequest.toDailyPlan(): DailyPlan = DailyPlan(
+    id = "${this.ownerUsername}:${this.day}",
     ownerUsername = this.ownerUsername,
     day = this.day,
     todo = this.todo,
