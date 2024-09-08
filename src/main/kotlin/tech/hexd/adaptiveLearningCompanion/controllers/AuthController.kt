@@ -7,6 +7,8 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
+import tech.hexd.adaptiveLearningCompanion.controllers.dto.Login
+import tech.hexd.adaptiveLearningCompanion.controllers.dto.Register
 import tech.hexd.adaptiveLearningCompanion.repositories.AppUser
 import tech.hexd.adaptiveLearningCompanion.repositories.AppUserRepository
 import tech.hexd.adaptiveLearningCompanion.util.JwtUtil
@@ -21,7 +23,7 @@ class AuthController @Autowired constructor(
 ) {
 
     @PostMapping("/register")
-    fun register(@RequestBody registerRequest: RegisterRequest): ResponseEntity<*> {
+    fun register(@RequestBody registerRequest: Register): ResponseEntity<*> {
         if (appUserRepository.findByUsername(registerRequest.username) != null) {
             return ResponseForger().badRequestFailure("User already exists").build()
         }
@@ -31,7 +33,7 @@ class AuthController @Autowired constructor(
     }
 
     @PostMapping("/login")
-    fun login(@RequestBody loginRequest: LoginRequest): ResponseEntity<*> {
+    fun login(@RequestBody loginRequest: Login): ResponseEntity<*> {
         val user = appUserRepository.findByUsername(loginRequest.username)
             ?: return ResponseForger().badRequestFailure("User does not exist").build()
 
@@ -52,6 +54,3 @@ class AuthController @Autowired constructor(
         appUserRepository.save(appUser)
     }
 }
-
-data class RegisterRequest(val username: String, val password: String)
-data class LoginRequest(val username: String, val password: String)

@@ -1,23 +1,22 @@
 package tech.hexd.adaptiveLearningCompanion.controllers
 
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.format.annotation.DateTimeFormat
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.Authentication
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.util.UriComponentsBuilder
+import tech.hexd.adaptiveLearningCompanion.controllers.dto.TaskCreateRequest
+import tech.hexd.adaptiveLearningCompanion.controllers.dto.toTask
 import tech.hexd.adaptiveLearningCompanion.repositories.Task
-import tech.hexd.adaptiveLearningCompanion.repositories.TaskCategory
-import tech.hexd.adaptiveLearningCompanion.repositories.TaskSize
+import tech.hexd.adaptiveLearningCompanion.repositories.TaskRepository
 import tech.hexd.adaptiveLearningCompanion.services.TaskService
-import tech.hexd.adaptiveLearningCompanion.util.ContextHelper
 import java.time.LocalDateTime
-import java.time.LocalTime
 
 @RestController
 @RequestMapping("/api/tasks")
-class TaskController (
+class TaskController(
     @Autowired val taskService: TaskService,
+    private val taskRepository: TaskRepository,
 ) {
     @GetMapping("/")
     fun getAllTasks(authentication: Authentication): ResponseEntity<*> {
@@ -34,22 +33,30 @@ class TaskController (
             .toUri()
         return ResponseEntity.created(location).body(savedTask)
     }
+
+    @PutMapping("/{taskId}")
+    fun updateTask(
+        authentication: Authentication,
+        @PathVariable taskId: String,
+        @RequestBody task: Task
+    ): ResponseEntity<Task> {
+        val existingTask = taskRepository.findById(taskId).orElse(null)
+            ?: return ResponseEntity.notFound().build()
+
+        if (task.id != taskId) {
+            return ResponseEntity.badRequest().build()
+        }
+
+        val updatedTask = existingTask.copy(
+            category = task.category,
+            size = task.size,
+            title = task.title,
+            description = task.description,
+            updatedAt = LocalDateTime.now(),
+            reusable = task.reusable,
+        )
+
+        val savedTask = taskRepository.save(updatedTask)
+        return ResponseEntity.ok(savedTask)
+    }
 }
-
-data class TaskCreateRequest(
-    val category: TaskCategory,
-    val size: TaskSize,
-    val title: String,
-    val description: String,
-    @DateTimeFormat(iso = DateTimeFormat.ISO.TIME)
-    val startTime: LocalTime? = null,
-)
-
-fun TaskCreateRequest.toTask(): Task = Task(
-    ownerUsername = ContextHelper.getCurrentlyLoggedUsername(),
-    category = this.category,
-    size = this.size,
-    title = this.title,
-    description = this.description,
-    createdAt = LocalDateTime.now(),
-)

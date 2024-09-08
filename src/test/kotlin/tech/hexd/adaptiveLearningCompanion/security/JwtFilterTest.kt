@@ -1,10 +1,9 @@
 package tech.hexd.adaptiveLearningCompanion.security
 
+import io.mockk.*
+import io.mockk.impl.annotations.MockK
 import jakarta.servlet.FilterChain
 import org.junit.jupiter.api.BeforeEach
-import org.mockito.Mock
-import org.mockito.Mockito.*
-import org.mockito.MockitoAnnotations
 import org.springframework.mock.web.MockHttpServletRequest
 import org.springframework.mock.web.MockHttpServletResponse
 import org.springframework.security.core.context.SecurityContextHolder
@@ -15,23 +14,26 @@ import kotlin.test.Test
 
 class JwtFilterTest {
 
-    @Mock
+    @MockK
     private lateinit var jwtUtil: JwtUtil
 
-    @Mock
+    @MockK
     private lateinit var userDetailsService: UserDetailsServiceImpl
 
-    @Mock
+    @MockK
     private lateinit var filterChain: FilterChain
 
     private lateinit var jwtFilter: JwtFilter
 
     @BeforeEach
-    fun setUp() {
-        MockitoAnnotations.openMocks(this)
+    fun setup() {
+        MockKAnnotations.init(this)
         jwtFilter = JwtFilter(jwtUtil, userDetailsService)
+        every { filterChain.doFilter(any(), any()) } just Runs
+
         SecurityContextHolder.clearContext()
     }
+
     @Test
     fun `doFilter should set authentication when valid token is provided`() {
         val request = MockHttpServletRequest()
@@ -42,13 +44,13 @@ class JwtFilterTest {
 
         request.addHeader("Authorization", "Bearer $jwt")
 
-        `when`(jwtUtil.extractUsername(jwt)).thenReturn(username)
-        `when`(userDetailsService.loadUserByUsername(username)).thenReturn(userDetails)
-        `when`(jwtUtil.validateToken(jwt)).thenReturn(true)
+        every { jwtUtil.extractUsername(jwt) } returns username
+        every { jwtUtil.validateToken(jwt) } returns true
+        every { userDetailsService.loadUserByUsername(username) } returns userDetails
 
         jwtFilter.doFilter(request, response, filterChain)
 
-        verify(filterChain).doFilter(request, response)
+        verify { filterChain.doFilter(request, response) }
         assert(SecurityContextHolder.getContext().authentication != null)
         assert(SecurityContextHolder.getContext().authentication.principal == userDetails)
     }
@@ -62,25 +64,27 @@ class JwtFilterTest {
 
         request.addHeader("Authorization", "Bearer $jwt")
 
-        `when`(jwtUtil.extractUsername(jwt)).thenReturn(username)
-        `when`(jwtUtil.validateToken(jwt)).thenReturn(false)
+        every { jwtUtil.extractUsername(jwt) }.returns(username)
+        every { jwtUtil.validateToken(jwt) }.returns(false)
 
         jwtFilter.doFilter(request, response, filterChain)
 
-        verify(filterChain).doFilter(request, response)
+        verify { filterChain.doFilter(request, response) }
         assert(SecurityContextHolder.getContext().authentication == null)
     }
 
     @Test
-    fun `doFilter should not process when no Authorization header is present`() {
+    fun `doFilter should not process when Authorization header is not present`() {
         val request = MockHttpServletRequest()
         val response = MockHttpServletResponse()
 
         jwtFilter.doFilter(request, response, filterChain)
 
-        verify(filterChain).doFilter(request, response)
-        verifyNoInteractions(jwtUtil)
-        verifyNoInteractions(userDetailsService)
+        verify { filterChain.doFilter(request, response) }
+        verify {
+            jwtUtil wasNot Called
+            userDetailsService wasNot Called
+        }
         assert(SecurityContextHolder.getContext().authentication == null)
     }
 
@@ -93,9 +97,11 @@ class JwtFilterTest {
 
         jwtFilter.doFilter(request, response, filterChain)
 
-        verify(filterChain).doFilter(request, response)
-        verifyNoInteractions(jwtUtil)
-        verifyNoInteractions(userDetailsService)
+        verify { filterChain.doFilter(request, response) }
+        verify {
+            jwtUtil wasNot Called
+            userDetailsService wasNot Called
+        }
         assert(SecurityContextHolder.getContext().authentication == null)
     }
 }

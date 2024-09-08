@@ -58,4 +58,5 @@ class JwtUtil {
             is String -> listOf(rolesObject)
             else -> emptyList()
         }
-    }}
+    }
+}

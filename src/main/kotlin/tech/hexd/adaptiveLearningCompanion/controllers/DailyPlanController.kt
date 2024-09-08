@@ -6,11 +6,10 @@ import org.springframework.http.HttpStatusCode
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.Authentication
 import org.springframework.web.bind.annotation.*
-import org.springframework.web.util.UriComponentsBuilder
-import tech.hexd.adaptiveLearningCompanion.repositories.DailyPlan
-import tech.hexd.adaptiveLearningCompanion.repositories.Task
+import tech.hexd.adaptiveLearningCompanion.controllers.dto.DailyPlanCreateResponse
+import tech.hexd.adaptiveLearningCompanion.controllers.dto.DailyPlanUpdateRequest
+import tech.hexd.adaptiveLearningCompanion.controllers.dto.DailyPlanUpdateResponse
 import tech.hexd.adaptiveLearningCompanion.services.DailyPlanService
-import tech.hexd.adaptiveLearningCompanion.util.ResponseForger
 import java.time.LocalDate
 
 @RestController
@@ -19,46 +18,24 @@ class DailyPlanController(private val dailyPlanService: DailyPlanService) {
     @GetMapping("/{date}")
     fun getDailyPlanForDate(
         @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) date: LocalDate
-    ): ResponseEntity<Map<String, Any>> {
-        val plan = dailyPlanService.getDailyPlanForDate(date)
-        return ResponseForger().ok().withField("plan", plan).build()
+    ): ResponseEntity<DailyPlanCreateResponse> {
+        return let {
+            val plan = dailyPlanService.getDailyPlanForDate(date)
+            ResponseEntity.ok().body(DailyPlanCreateResponse(plan))
+        }
     }
 
     @PutMapping("/{date}")
     fun updateDailyPlanForDate(
         @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) date: LocalDate,
-        @RequestBody @Valid request: DailyPlanCreateRequest,
+        @RequestBody @Valid request: DailyPlanUpdateRequest,
         authentication: Authentication,
-        uriBuilder: UriComponentsBuilder,
-    ): ResponseEntity<Map<String, Any>> {
-        if (authentication.name != request.ownerUsername) {
-            return ResponseEntity.badRequest().build()
-        }
-
+    ): ResponseEntity<DailyPlanUpdateResponse> {
         return try {
-            val updatedDailyPlan = dailyPlanService.updateDailyPlanForDate(date, request.toDailyPlan())
-
-            val location = uriBuilder.path("/api/daily-plans/{id}")
-                .buildAndExpand(updatedDailyPlan.id)
-                .toUri()
-            ResponseEntity.status(HttpStatusCode.valueOf(204)).location(location).build()
+            val updatedDailyPlan = dailyPlanService.updateDailyPlanForDate(date, request)
+            ResponseEntity.status(HttpStatusCode.valueOf(204)).body(DailyPlanUpdateResponse(updatedDailyPlan))
         } catch (e: NoSuchElementException) {
             ResponseEntity.notFound().build()
         }
     }
 }
-
-data class DailyPlanCreateRequest(
-    val ownerUsername: String,
-    val day: LocalDate,
-    val todo: List<Task>,
-    val done: List<Task>,
-)
-
-fun DailyPlanCreateRequest.toDailyPlan(): DailyPlan = DailyPlan(
-    id = "${this.ownerUsername}:${this.day}",
-    ownerUsername = this.ownerUsername,
-    day = this.day,
-    todo = this.todo,
-    done = this.done,
-)

@@ -1,57 +1,83 @@
-package controllers
-
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import org.junit.jupiter.api.BeforeEach
+import controllers.BaseControllerTest
+import io.mockk.every
+import io.restassured.module.kotlin.extensions.Given
+import io.restassured.module.kotlin.extensions.Then
+import io.restassured.module.kotlin.extensions.When
+import org.hamcrest.Matchers.equalTo
 import org.junit.jupiter.api.Test
-import org.mockito.kotlin.any
-import org.mockito.kotlin.whenever
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.boot.test.web.server.LocalServerPort
 import org.springframework.security.test.context.support.WithMockUser
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers
+import org.springframework.test.context.DynamicPropertyRegistry
+import org.springframework.test.context.DynamicPropertySource
+import org.testcontainers.containers.MongoDBContainer
+import org.testcontainers.junit.jupiter.Container
+import org.testcontainers.junit.jupiter.Testcontainers
 import tech.hexd.adaptiveLearningCompanion.AdaptiveLearningCompanionApplication
 import tech.hexd.adaptiveLearningCompanion.repositories.DailyPlan
-import java.time.LocalDate.of
+import java.time.LocalDate
 
-@SpringBootTest(classes = [AdaptiveLearningCompanionApplication::class])
+@SpringBootTest(
+    classes = [AdaptiveLearningCompanionApplication::class],
+    webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT
+)
+@Testcontainers
 class DailyPlanControllerTest: BaseControllerTest() {
+    companion object {
+        @Container
+        private val mongoDBContainer = MongoDBContainer("mongo:4.4.6")
 
-    @BeforeEach
-    fun setup() {
-        this.baseSetup()
+        @JvmStatic
+        @DynamicPropertySource
+        fun properties(registry: DynamicPropertyRegistry) {
+            registry.add("spring.data.mongodb.uri", mongoDBContainer::getReplicaSetUrl)
+        }
+
+        const val TEST_USERNAME = "testUser"
     }
+
+    @LocalServerPort
+    private val port: Int = 0
 
     @Test
     @WithMockUser(username = TEST_USERNAME, roles = ["USER"])
     fun `should return plan if exists for a date`() {
-        val testDate = of(2024, 8, 30)
-        val testDailyPlan = createRandomDailyPlanFor(testUsername, testDate)
-        whenever(dailyPlanRepository.findByOwnerUsernameAndDay(testUsername, testDate)).thenReturn(testDailyPlan)
+        val testDate = LocalDate.of(2024, 8, 30)
+        val testDailyPlan = createRandomDailyPlanFor(TEST_USERNAME, testDate)
+//        every { dailyPlanRepository.findByOwnerUsernameAndDay(TEST_USERNAME, testDate) } returns testDailyPlan
 
-        this.performAuthenticatedGet("/daily-plan/${testDate}")
-            .andExpect(MockMvcResultMatchers.status().isOk)
-            .andExpect(MockMvcResultMatchers.jsonPath("$.success").value(true))
-            .andExpect(MockMvcResultMatchers.jsonPath("$.plan.id").value(testDailyPlan.id))
-            .andExpect(MockMvcResultMatchers.jsonPath("$.plan.ownerUsername").value(testDailyPlan.ownerUsername))
-            .andExpect(MockMvcResultMatchers.jsonPath("$.plan.day").value(testDate.toString()))
-            .andExpect(MockMvcResultMatchers.jsonPath("$.plan.todo").value(matchesTaskList(testDailyPlan.todo)))
-            .andExpect(MockMvcResultMatchers.jsonPath("$.plan.done").value(matchesTaskList(testDailyPlan.done)))
+        Given {
+            auth().basic(TEST_USERNAME, "testPassword")
+        } When {
+            get("/daily-plan/${testDate}")
+        } Then {
+            statusCode(200)
+            body("success", equalTo(true))
+            body("plan.id", equalTo(testDailyPlan.id))
+            body("plan.ownerUsername", equalTo(testDailyPlan.ownerUsername))
+            body("plan.day", equalTo(testDate.toString()))
+            body("plan.todo", matchesTaskList(testDailyPlan.todo))
+            body("plan.done", matchesTaskList(testDailyPlan.done))
+        }
     }
 
     @Test
     @WithMockUser(username = "someUsername", roles = ["USER"])
     fun `should create a new plan if plan doesn't exist for a date`() {
-        val testDate = of(2024, 8, 30)
-        val expectedNewPlan = DailyPlan.newEmptyForUserAndDate(testUsername, testDate)
-        whenever(dailyPlanRepository.findByOwnerUsernameAndDay(testUsername, testDate)).thenReturn(null)
-        whenever(dailyPlanRepository.save(any<DailyPlan>())).thenReturn(expectedNewPlan)
+        val testDate = LocalDate.of(2024, 8, 30)
+        val expectedNewPlan = DailyPlan.newEmptyForUserAndDate(TEST_USERNAME, testDate)
+//        every { dailyPlanRepository.findByOwnerUsernameAndDay(TEST_USERNAME, testDate) } returns null
+//        every { dailyPlanRepository.save(any<DailyPlan>()) } returns expectedNewPlan
 
-        this.performAuthenticatedGet("/daily-plan/${testDate}")
-            .andExpect(MockMvcResultMatchers.status().isOk)
-            .andExpect(MockMvcResultMatchers.status().isOk)
-            .andExpect(MockMvcResultMatchers.jsonPath("$.success").value(true))
-            .andExpect(MockMvcResultMatchers.jsonPath("$.plan.ownerUsername").value(expectedNewPlan.ownerUsername))
-            .andExpect(MockMvcResultMatchers.jsonPath("$.plan.day").value(testDate.toString()))
-            .andExpect(MockMvcResultMatchers.jsonPath("$.plan.todo").value(matchesJsonOf(expectedNewPlan.todo)))
-            .andExpect(MockMvcResultMatchers.jsonPath("$.plan.done").value(matchesJsonOf(expectedNewPlan.done)))
+        When {
+            get("/daily-plan/${testDate}")
+        } Then {
+            statusCode(200)
+            body("success", equalTo(true))
+            body("plan.ownerUsername", equalTo(expectedNewPlan.ownerUsername))
+            body("plan.day", equalTo(testDate.toString()))
+            body("plan.todo", matchesJsonOf(expectedNewPlan.todo))
+            body("plan.done", matchesJsonOf(expectedNewPlan.done))
+        }
     }
 }

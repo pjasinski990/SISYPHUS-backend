@@ -1,0 +1,7 @@
+logging.level.root: DEBUG
+spring:
+  data:
+    mongodb:
+      host: localhost
+      port: 2137
+      database: test_db

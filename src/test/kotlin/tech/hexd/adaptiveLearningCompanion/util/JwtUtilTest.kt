@@ -14,7 +14,7 @@ class JwtUtilTest {
     private lateinit var jwtUtil: JwtUtil;
 
     @BeforeEach
-    fun setUp() {
+    fun setup() {
         jwtUtil = JwtUtil()
     }
 

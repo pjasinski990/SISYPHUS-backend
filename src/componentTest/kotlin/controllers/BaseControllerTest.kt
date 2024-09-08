@@ -1,58 +1,71 @@
 package controllers
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import io.restassured.RestAssured
 import org.hamcrest.BaseMatcher
 import org.hamcrest.Description
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
-import org.mockito.kotlin.whenever
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration
-import org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration
 import org.springframework.boot.test.autoconfigure.data.mongo.AutoConfigureDataMongo
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
-import org.springframework.boot.test.mock.mockito.MockBean
+import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.boot.test.web.server.LocalServerPort
 import org.springframework.http.MediaType
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf
+import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.ResultActions
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
-import tech.hexd.adaptiveLearningCompanion.controllers.TaskCreateRequest
+import tech.hexd.adaptiveLearningCompanion.AdaptiveLearningCompanionApplication
 import tech.hexd.adaptiveLearningCompanion.controllers.UserController
+import tech.hexd.adaptiveLearningCompanion.controllers.dto.TaskCreateRequest
 import tech.hexd.adaptiveLearningCompanion.repositories.*
 import tech.hexd.adaptiveLearningCompanion.services.UserDetailsServiceImpl
-import tech.hexd.adaptiveLearningCompanion.util.JwtUtil
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.*
 
 @Suppress("SpringJavaInjectionPointsAutowiringInspection")
-@AutoConfigureMockMvc
-@AutoConfigureDataMongo
-@EnableAutoConfiguration(exclude=[MongoAutoConfiguration::class])
+@SpringBootTest(
+    classes = [AdaptiveLearningCompanionApplication::class],
+    webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT
+)
+@ActiveProfiles("test")
 abstract class BaseControllerTest {
+
+    @LocalServerPort
+    private val port: Int = 0
+
+    @BeforeEach
+    fun setup() {
+        RestAssured.port = port
+        RestAssured.baseURI = "http://localhost"
+    }
+
+    @AfterEach
+    fun cleanup() {
+        appUserRepository.deleteAll()
+        taskRepository.deleteAll()
+        dailyPlanRepository.deleteAll()
+    }
+
     @Autowired
-    protected lateinit var mockMvc: MockMvc
-
-    @MockBean
-    protected lateinit var jwtUtil: JwtUtil
-
-    @MockBean
     protected lateinit var appUserRepository: AppUserRepository
 
-    @MockBean
+    @Autowired
     protected lateinit var taskRepository: TaskRepository
 
-    @MockBean
+    @Autowired
     protected lateinit var dailyPlanRepository: DailyPlanRepository
-
-    @MockBean
-    protected lateinit var userDetailsService: UserDetailsServiceImpl
 
     companion object {
         const val TEST_TOKEN = "someValidToken"
         const val TEST_USERNAME = "someUsername"
+        const val TEST_PASSWORD = "somePassword"
         const val TEST_USER_ID = "someUserId"
 
         protected val logger: Logger = LoggerFactory.getLogger(UserController::class.java)
@@ -60,33 +73,34 @@ abstract class BaseControllerTest {
 
     protected val objectMapper = jacksonObjectMapper()
 
-    protected val testToken = BaseControllerTest.TEST_TOKEN
-    protected val testUsername = BaseControllerTest.TEST_USERNAME
-    protected val testUserId = BaseControllerTest.TEST_USER_ID
+    protected val testToken = TEST_TOKEN
+    protected val testUsername = TEST_USERNAME
+    protected val testPassword = TEST_PASSWORD
+    protected val testUserId = TEST_USER_ID
 
     @BeforeEach
     fun baseSetup() {
-        whenever(jwtUtil.validateToken(testToken)).thenReturn(true)
-        whenever(jwtUtil.extractUsername(testToken)).thenReturn(testUsername)
-        whenever(jwtUtil.extractRoles(testToken)).thenReturn(arrayListOf("ROLE_USER"))
+//        every { jwtUtil.validateToken(testToken) } returns true
+//        every { jwtUtil.extractUsername(testToken) } returns testUsername
+//        every { jwtUtil.extractRoles(testToken) } returns arrayListOf("ROLE_USER")
     }
 
-    protected fun performAuthenticatedPost(url: String, content: Any): ResultActions =
-        mockMvc.perform(
-            MockMvcRequestBuilders.post(url)
-                .header("Authorization", "Bearer $testToken")
-                .with(csrf())
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(jacksonObjectMapper().writeValueAsString(content))
-        )
-
-    protected fun performAuthenticatedGet(url: String): ResultActions =
-        mockMvc.perform(
-            MockMvcRequestBuilders.get(url)
-                .header("Authorization", "Bearer $testToken")
-                .with(csrf())
-        )
-
+//    protected fun performAuthenticatedPost(url: String, content: Any): ResultActions =
+//        mockMvc.perform(
+//            MockMvcRequestBuilders.post(url)
+//                .header("Authorization", "Bearer $testToken")
+//                .with(csrf())
+//                .contentType(MediaType.APPLICATION_JSON)
+//                .content(jacksonObjectMapper().writeValueAsString(content))
+//        )
+//
+//    protected fun performAuthenticatedGet(url: String): ResultActions =
+//        mockMvc.perform(
+//            MockMvcRequestBuilders.get(url)
+//                .header("Authorization", "Bearer $testToken")
+//                .with(csrf())
+//        )
+//
     protected fun createTestTaskCreateRequest(
         category: TaskCategory = TaskCategory.BLUE,
         size: TaskSize = TaskSize.BIG,
@@ -100,7 +114,17 @@ abstract class BaseControllerTest {
         size: TaskSize = TaskSize.BIG,
         title: String = "TaskController tests implementation",
         description: String = "finish implementation of TaskController tests"
-    ) = Task(id, testUsername, category, size, title, description, LocalDateTime.now())
+    ) = Task(
+        id = id,
+        ownerUsername = testUsername,
+        category = category,
+        size = size,
+        title = title,
+        description = description,
+        reusable = false,
+        createdAt = LocalDateTime.now(),
+        updatedAt = LocalDateTime.now()
+    )
 
     protected fun generateRandomTaskFor(username: String): Task {
         return Task(
@@ -110,7 +134,9 @@ abstract class BaseControllerTest {
             size = TaskSize.entries.toTypedArray().random(),
             title = generateRandomTitle(),
             description = generateRandomDescription(),
+            reusable = false,
             createdAt = LocalDateTime.now(),
+            updatedAt = LocalDateTime.now(),
         )
     }
 
