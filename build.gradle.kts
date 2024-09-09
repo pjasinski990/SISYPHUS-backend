@@ -106,6 +106,7 @@ tasks.register<Test>("componentTest") {
 
 tasks.withType<Test> {
 	useJUnitPlatform()
+	environment("SPRING_PROFILES_ACTIVE", "test")
 }
 
 tasks.check {

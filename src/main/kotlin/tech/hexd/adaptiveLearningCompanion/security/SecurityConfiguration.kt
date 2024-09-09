@@ -3,6 +3,7 @@ package tech.hexd.adaptiveLearningCompanion.security
 import jakarta.servlet.http.HttpServletResponse
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.http.HttpStatus
 import org.springframework.security.authentication.AuthenticationManager
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
@@ -44,7 +45,7 @@ class SecurityConfiguration(
             .exceptionHandling { exceptionHandling ->
                 exceptionHandling
                     .authenticationEntryPoint { _, response, _ ->
-                        response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized")
+                        response.sendError(HttpStatus.UNAUTHORIZED.value(), "Unauthorized")
                     }
             }
 

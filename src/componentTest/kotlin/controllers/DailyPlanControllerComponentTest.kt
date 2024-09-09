@@ -1,4 +1,6 @@
-import controllers.BaseControllerTest
+package controllers
+
+import BaseComponentTest
 import io.restassured.http.ContentType
 import io.restassured.module.kotlin.extensions.Given
 import io.restassured.module.kotlin.extensions.Then
@@ -8,8 +10,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 
-
-class DailyPlanControllerTest: BaseControllerTest() {
+class DailyPlanControllerComponentTest: BaseComponentTest() {
     @BeforeEach
     fun setup() {
         registerUser(testUsername, testPassword)

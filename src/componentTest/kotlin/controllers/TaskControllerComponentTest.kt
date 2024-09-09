@@ -1,15 +1,13 @@
 package controllers
 
+import BaseComponentTest
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.security.test.context.support.WithMockUser
-import tech.hexd.adaptiveLearningCompanion.AdaptiveLearningCompanionApplication
 import tech.hexd.adaptiveLearningCompanion.repositories.Task
 
-@SpringBootTest(classes = [AdaptiveLearningCompanionApplication::class])
-class TaskControllerTest: BaseControllerTest() {
+class TaskControllerComponentTest: BaseComponentTest() {
 
     private val testTaskCreateRequest = createTestTaskCreateRequest()
     private val testSavedTaskResponse = createTestSavedTaskResponse()

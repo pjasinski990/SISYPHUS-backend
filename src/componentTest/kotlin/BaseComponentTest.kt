@@ -1,20 +1,20 @@
-package controllers
-
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import io.restassured.RestAssured
 import io.restassured.http.ContentType
 import io.restassured.module.kotlin.extensions.*
 import org.hamcrest.BaseMatcher
+import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.Description
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.test.autoconfigure.data.mongo.AutoConfigureDataMongo
+import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.web.server.LocalServerPort
 import org.springframework.security.crypto.password.PasswordEncoder
-import org.springframework.test.context.ActiveProfiles
 import tech.hexd.adaptiveLearningCompanion.AdaptiveLearningCompanionApplication
 import tech.hexd.adaptiveLearningCompanion.controllers.UserController
 import tech.hexd.adaptiveLearningCompanion.controllers.dto.TaskCreateRequest
@@ -23,15 +23,15 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.*
 
-import tech.hexd.adaptiveLearningCompanion.controllers.dto.Login
+import tech.hexd.adaptiveLearningCompanion.controllers.dto.LoginRequest
 
 @Suppress("SpringJavaInjectionPointsAutowiringInspection")
+@AutoConfigureDataMongo
 @SpringBootTest(
     classes = [AdaptiveLearningCompanionApplication::class],
     webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT
 )
-@ActiveProfiles("test")
-abstract class BaseControllerTest {
+abstract class BaseComponentTest {
 
     @LocalServerPort
     private val port: Int = 0
@@ -77,16 +77,20 @@ abstract class BaseControllerTest {
     protected val testPassword = TEST_PASSWORD
     protected val testUserId = TEST_USER_ID
 
-    protected fun registerUser(username: String, password: String) {
-        appUserRepository.save(AppUser(null, username, passwordEncoder.encode(password), listOf("ROLE_USER")))
+    protected fun registerUser(username: String, password: String, isAdmin: Boolean = false) {
+        val roles = if (isAdmin) { listOf("ROLE_ADMIN") } else { listOf("ROLE_USER") }
+        appUserRepository.save(AppUser(null, username, passwordEncoder.encode(password), roles))
     }
 
     protected fun getUserJwt(username: String, password: String): String {
         val response = Given {
             contentType(ContentType.JSON)
-            body(Login(username = username, password = password))
+            body(LoginRequest(username = username, password = password))
         } When {
             post("/auth/login")
+        } Then {
+            contentType(ContentType.JSON)
+            statusCode(200).onFailMessage("Error in getUserJwt for ${username}:${password}")
         } Extract {
             response()
         }
