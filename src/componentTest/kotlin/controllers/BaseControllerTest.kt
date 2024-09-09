@@ -2,6 +2,8 @@ package controllers
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import io.restassured.RestAssured
+import io.restassured.http.ContentType
+import io.restassured.module.kotlin.extensions.*
 import org.hamcrest.BaseMatcher
 import org.hamcrest.Description
 import org.junit.jupiter.api.AfterEach
@@ -9,25 +11,19 @@ import org.junit.jupiter.api.BeforeEach
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration
-import org.springframework.boot.test.autoconfigure.data.mongo.AutoConfigureDataMongo
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.web.server.LocalServerPort
-import org.springframework.http.MediaType
-import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf
+import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.test.context.ActiveProfiles
-import org.springframework.test.web.servlet.MockMvc
-import org.springframework.test.web.servlet.ResultActions
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
 import tech.hexd.adaptiveLearningCompanion.AdaptiveLearningCompanionApplication
 import tech.hexd.adaptiveLearningCompanion.controllers.UserController
 import tech.hexd.adaptiveLearningCompanion.controllers.dto.TaskCreateRequest
 import tech.hexd.adaptiveLearningCompanion.repositories.*
-import tech.hexd.adaptiveLearningCompanion.services.UserDetailsServiceImpl
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.*
+
+import tech.hexd.adaptiveLearningCompanion.controllers.dto.Login
 
 @Suppress("SpringJavaInjectionPointsAutowiringInspection")
 @SpringBootTest(
@@ -41,13 +37,13 @@ abstract class BaseControllerTest {
     private val port: Int = 0
 
     @BeforeEach
-    fun setup() {
+    fun baseSetup() {
         RestAssured.port = port
         RestAssured.baseURI = "http://localhost"
     }
 
     @AfterEach
-    fun cleanup() {
+    fun baseCleanup() {
         appUserRepository.deleteAll()
         taskRepository.deleteAll()
         dailyPlanRepository.deleteAll()
@@ -61,6 +57,9 @@ abstract class BaseControllerTest {
 
     @Autowired
     protected lateinit var dailyPlanRepository: DailyPlanRepository
+
+    @Autowired
+    protected lateinit var passwordEncoder: PasswordEncoder
 
     companion object {
         const val TEST_TOKEN = "someValidToken"
@@ -78,29 +77,22 @@ abstract class BaseControllerTest {
     protected val testPassword = TEST_PASSWORD
     protected val testUserId = TEST_USER_ID
 
-    @BeforeEach
-    fun baseSetup() {
-//        every { jwtUtil.validateToken(testToken) } returns true
-//        every { jwtUtil.extractUsername(testToken) } returns testUsername
-//        every { jwtUtil.extractRoles(testToken) } returns arrayListOf("ROLE_USER")
+    protected fun registerUser(username: String, password: String) {
+        appUserRepository.save(AppUser(null, username, passwordEncoder.encode(password), listOf("ROLE_USER")))
     }
 
-//    protected fun performAuthenticatedPost(url: String, content: Any): ResultActions =
-//        mockMvc.perform(
-//            MockMvcRequestBuilders.post(url)
-//                .header("Authorization", "Bearer $testToken")
-//                .with(csrf())
-//                .contentType(MediaType.APPLICATION_JSON)
-//                .content(jacksonObjectMapper().writeValueAsString(content))
-//        )
-//
-//    protected fun performAuthenticatedGet(url: String): ResultActions =
-//        mockMvc.perform(
-//            MockMvcRequestBuilders.get(url)
-//                .header("Authorization", "Bearer $testToken")
-//                .with(csrf())
-//        )
-//
+    protected fun getUserJwt(username: String, password: String): String {
+        val response = Given {
+            contentType(ContentType.JSON)
+            body(Login(username = username, password = password))
+        } When {
+            post("/auth/login")
+        } Extract {
+            response()
+        }
+        return response.jsonPath().getString("token")
+    }
+
     protected fun createTestTaskCreateRequest(
         category: TaskCategory = TaskCategory.BLUE,
         size: TaskSize = TaskSize.BIG,

@@ -5,8 +5,9 @@ spring:
       host: localhost
       port: 2137
       database: test_db
+
 de:
   flapdoodle:
     mongodb:
       embedded:
-        version:
+        version: 4.0.11

@@ -2,3 +2,9 @@ spring.application.name: adaptive_learning_companion
 spring.data.mongodb.uri: mongodb://localhost:27017/adaptive_learning_companion
 
 logging.level.root: INFO
+
+de:
+  flapdoodle:
+    mongodb:
+      embedded:
+        version: 4.0.11

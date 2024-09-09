@@ -46,7 +46,7 @@ dependencies {
 	testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
 	testImplementation("org.mockito.kotlin:mockito-kotlin:4.1.0")
 	testImplementation("org.springframework.security:spring-security-test")
-	testImplementation("de.flapdoodle.embed:de.flapdoodle.embed.mongo:4.17.0")
+	testImplementation("de.flapdoodle.embed:de.flapdoodle.embed.mongo.spring30x:4.11.0")
 	testImplementation("com.ninja-squad:springmockk:4.0.2")
 	testImplementation("org.springframework.boot:spring-boot-starter-test") {
 		exclude(module = "mockito-core")
@@ -62,7 +62,7 @@ dependencies {
 	componentTestImplementation("org.mockito.kotlin:mockito-kotlin:4.1.0")
 	componentTestImplementation("org.springframework.security:spring-security-test")
 	componentTestImplementation("io.jsonwebtoken:jjwt-api:0.11.5")
-	componentTestImplementation("de.flapdoodle.embed:de.flapdoodle.embed.mongo:4.17.0")
+	componentTestImplementation("de.flapdoodle.embed:de.flapdoodle.embed.mongo.spring30x:4.11.0")
 	componentTestImplementation("com.ninja-squad:springmockk:4.0.2")
 	componentTestImplementation("org.springframework.boot:spring-boot-starter-test") {
 		exclude(module = "mockito-core")
@@ -70,9 +70,6 @@ dependencies {
 	componentTestImplementation("io.rest-assured:rest-assured:5.5.0")
 	componentTestImplementation("io.rest-assured:spring-mock-mvc:5.5.0")
 	componentTestImplementation("io.rest-assured:kotlin-extensions:5.5.0")
-	componentTestImplementation("org.testcontainers:testcontainers:1.18.1")
-	componentTestImplementation("org.testcontainers:junit-jupiter:1.18.1")
-	componentTestImplementation("org.testcontainers:mongodb:1.18.1")
 
 	componentTestRuntimeOnly("io.jsonwebtoken:jjwt-impl:0.11.5")
 	componentTestRuntimeOnly("io.jsonwebtoken:jjwt-jackson:0.11.5")

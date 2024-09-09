@@ -1,13 +1,10 @@
 package controllers
 
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import org.hamcrest.Matchers.hasSize
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.http.MediaType
 import org.springframework.security.test.context.support.WithMockUser
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers
 import tech.hexd.adaptiveLearningCompanion.AdaptiveLearningCompanionApplication
 import tech.hexd.adaptiveLearningCompanion.repositories.Task
 
@@ -19,7 +16,12 @@ class TaskControllerTest: BaseControllerTest() {
 
     @BeforeEach
     fun setup() {
-        this.baseSetup()
+        super.baseSetup()
+    }
+
+    @AfterEach
+    fun cleanup() {
+        super.baseCleanup()
     }
 
     @Test
