@@ -1,29 +1,32 @@
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import io.restassured.RestAssured
 import io.restassured.http.ContentType
-import io.restassured.module.kotlin.extensions.*
+import io.restassured.module.kotlin.extensions.Extract
+import io.restassured.module.kotlin.extensions.Given
+import io.restassured.module.kotlin.extensions.Then
+import io.restassured.module.kotlin.extensions.When
 import org.hamcrest.BaseMatcher
-import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.Description
+import org.hamcrest.Matcher
+import org.hamcrest.TypeSafeMatcher
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.data.mongo.AutoConfigureDataMongo
-import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.web.server.LocalServerPort
 import org.springframework.security.crypto.password.PasswordEncoder
 import tech.hexd.adaptiveLearningCompanion.AdaptiveLearningCompanionApplication
 import tech.hexd.adaptiveLearningCompanion.controllers.UserController
+import tech.hexd.adaptiveLearningCompanion.controllers.dto.LoginRequest
 import tech.hexd.adaptiveLearningCompanion.controllers.dto.TaskCreateRequest
 import tech.hexd.adaptiveLearningCompanion.repositories.*
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.*
-
-import tech.hexd.adaptiveLearningCompanion.controllers.dto.LoginRequest
+import kotlin.math.min
 
 @Suppress("SpringJavaInjectionPointsAutowiringInspection")
 @AutoConfigureDataMongo
@@ -78,7 +81,11 @@ abstract class BaseComponentTest {
     protected val testUserId = TEST_USER_ID
 
     protected fun registerUser(username: String, password: String, isAdmin: Boolean = false) {
-        val roles = if (isAdmin) { listOf("ROLE_ADMIN") } else { listOf("ROLE_USER") }
+        val roles = if (isAdmin) {
+            listOf("ROLE_ADMIN")
+        } else {
+            listOf("ROLE_USER")
+        }
         appUserRepository.save(AppUser(null, username, passwordEncoder.encode(password), roles))
     }
 
@@ -122,19 +129,25 @@ abstract class BaseComponentTest {
         updatedAt = LocalDateTime.now()
     )
 
-    protected fun generateRandomTaskFor(username: String): Task {
-        return Task(
-            id = UUID.randomUUID().toString(),
-            ownerUsername = username,
-            category = TaskCategory.entries.toTypedArray().random(),
-            size = TaskSize.entries.toTypedArray().random(),
-            title = generateRandomTitle(),
-            description = generateRandomDescription(),
-            reusable = false,
-            createdAt = LocalDateTime.now(),
-            updatedAt = LocalDateTime.now(),
-        )
-    }
+    protected fun generateRandomTaskFor(username: String) = Task(
+        id = UUID.randomUUID().toString(),
+        ownerUsername = username,
+        category = TaskCategory.entries.toTypedArray().random(),
+        size = TaskSize.entries.toTypedArray().random(),
+        title = generateRandomTitle(),
+        description = generateRandomDescription(),
+        reusable = false,
+        createdAt = LocalDateTime.now(),
+        updatedAt = LocalDateTime.now(),
+    )
+
+    protected fun toTaskCreateRequest(task: Task) = TaskCreateRequest(
+        category = task.category,
+        size = task.size,
+        title = task.title,
+        description = task.description,
+        reusable = task.reusable,
+    )
 
     protected fun matchesJsonOf(expected: Any) = object : BaseMatcher<Any>() {
         override fun matches(actual: Any?): Boolean {
@@ -142,6 +155,7 @@ abstract class BaseComponentTest {
             val actualJson = objectMapper.writeValueAsString(actual)
             return expectedJson == actualJson
         }
+
         override fun describeTo(description: Description) {
             description.appendText("matches JSON representation of ").appendValue(expected)
         }
@@ -198,5 +212,18 @@ abstract class BaseComponentTest {
             todo = todo,
             done = done,
         )
+    }
+
+    fun equalsTimestampUpLowerPrecision(expected: String): Matcher<String> {
+        return object : TypeSafeMatcher<String>() {
+            override fun matchesSafely(actual: String): Boolean {
+                val minLen = min(expected.length, actual.length)
+                return expected.substring(0, minLen) == actual.substring(0, minLen)
+            }
+
+            override fun describeTo(description: Description) {
+                description.appendText("a timestamp equal to $expected up to lower of precisions")
+            }
+        }
     }
 }

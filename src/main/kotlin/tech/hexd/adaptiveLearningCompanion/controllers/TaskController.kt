@@ -6,7 +6,6 @@ import org.springframework.security.core.Authentication
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.util.UriComponentsBuilder
 import tech.hexd.adaptiveLearningCompanion.controllers.dto.TaskCreateRequest
-import tech.hexd.adaptiveLearningCompanion.controllers.dto.toTask
 import tech.hexd.adaptiveLearningCompanion.repositories.Task
 import tech.hexd.adaptiveLearningCompanion.repositories.TaskRepository
 import tech.hexd.adaptiveLearningCompanion.services.TaskService
@@ -21,10 +20,10 @@ class TaskController(
     @GetMapping("/")
     fun getAllTasks(authentication: Authentication): ResponseEntity<*> {
         val tasks = taskService.getAllTasksForCurrentUser()
-        return tasks.let { ResponseEntity.ok(it) }
+        return ResponseEntity.ok(tasks)
     }
 
-    @PostMapping("/new")
+    @PostMapping("/")
     fun createNewTask(@RequestBody req: TaskCreateRequest, authentication: Authentication, uriBuilder: UriComponentsBuilder): ResponseEntity<*> {
         val savedTask = taskService.createNewTaskForCurrentUser(req.toTask());
 

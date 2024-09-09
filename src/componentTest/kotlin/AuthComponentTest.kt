@@ -3,6 +3,7 @@ import io.restassured.module.kotlin.extensions.Given
 import io.restassured.module.kotlin.extensions.Then
 import io.restassured.module.kotlin.extensions.When
 import org.junit.jupiter.api.Test
+import org.springframework.http.HttpStatus
 
 class AuthComponentTest: BaseComponentTest() {
     @Test
@@ -17,7 +18,7 @@ class AuthComponentTest: BaseComponentTest() {
             get("/user/profile")
         } Then {
             contentType(ContentType.JSON)
-            statusCode(200)
+            statusCode(HttpStatus.OK.value())
         }
     }
 
@@ -28,7 +29,7 @@ class AuthComponentTest: BaseComponentTest() {
         } When {
             get("/user/profile")
         } Then {
-            statusCode(401)
+            statusCode(HttpStatus.UNAUTHORIZED.value())
         }
     }
 
@@ -43,7 +44,7 @@ class AuthComponentTest: BaseComponentTest() {
         } When {
             get("/admin/dashboard")
         } Then {
-            statusCode(200)
+            statusCode(HttpStatus.OK.value())
         }
     }
 
@@ -58,7 +59,7 @@ class AuthComponentTest: BaseComponentTest() {
         } When {
             get("/admin/dashboard")
         } Then {
-            statusCode(401)
+            statusCode(HttpStatus.UNAUTHORIZED.value())
         }
     }
 }

@@ -1,61 +1,102 @@
 package controllers
 
 import BaseComponentTest
-import org.junit.jupiter.api.AfterEach
+import io.restassured.http.ContentType
+import io.restassured.module.kotlin.extensions.Given
+import io.restassured.module.kotlin.extensions.Then
+import io.restassured.module.kotlin.extensions.When
+import org.hamcrest.Matchers.equalTo
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.springframework.security.test.context.support.WithMockUser
-import tech.hexd.adaptiveLearningCompanion.repositories.Task
+import org.springframework.http.HttpStatus
+import tech.hexd.adaptiveLearningCompanion.controllers.dto.TaskCreateRequest
 
 class TaskControllerComponentTest: BaseComponentTest() {
-
-    private val testTaskCreateRequest = createTestTaskCreateRequest()
-    private val testSavedTaskResponse = createTestSavedTaskResponse()
+    private lateinit var testUserJwt: String
 
     @BeforeEach
     fun setup() {
-        super.baseSetup()
-    }
-
-    @AfterEach
-    fun cleanup() {
-        super.baseCleanup()
+        registerUser(testUsername, testPassword)
+        testUserJwt = getUserJwt(testUsername, testPassword)
     }
 
     @Test
-    @WithMockUser(username = "someUsername", roles = ["USER"])
     fun `should create a task when calling createNewTask`() {
-//        whenever(taskRepository.save(any<Task>())).thenReturn(testSavedTaskResponse)
+        val randomTask = generateRandomTaskFor(testUsername)
+        val body = TaskCreateRequest.fromTask(randomTask)
 
-//        this.performAuthenticatedPost("/api/tasks/new", testTaskCreateRequest)
-//            .andExpect(MockMvcResultMatchers.status().isCreated)
-//            .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
+        Given {
+            contentType(ContentType.JSON)
+            header("Authorization", "Bearer $testUserJwt")
+            body(body)
+        } When {
+            post("/api/tasks/")
+        } Then {
+            contentType(ContentType.JSON)
+            statusCode(HttpStatus.CREATED.value())
+            body("title", equalTo(randomTask.title))
+            body("description", equalTo(randomTask.description))
+            body("category", equalTo(randomTask.category.toString()))
+            body("size", equalTo(randomTask.size.toString()))
+        }
     }
 
     @Test
-    @WithMockUser(username = "someUsername", roles = ["USER"])
+    fun `should retrieve correct task for user`() {
+        val task = generateRandomTaskFor(testUsername)
+        val savedTask = taskRepository.save(task)
+
+        Given {
+            contentType(ContentType.JSON)
+            header("Authorization", "Bearer $testUserJwt")
+        } When {
+            get("/api/tasks/")
+        } Then {
+            contentType(ContentType.JSON)
+            statusCode(HttpStatus.OK.value())
+            body("$.size()", equalTo(1))
+            body("[0].id", equalTo(savedTask.id))
+            body("[0].ownerUsername", equalTo(savedTask.ownerUsername))
+            body("[0].category", equalTo(savedTask.category.toString()))
+            body("[0].size", equalTo(savedTask.size.toString()))
+            body("[0].title", equalTo(savedTask.title))
+            body("[0].description", equalTo(savedTask.description))
+            body("[0].reusable", equalTo(savedTask.reusable))
+            body("[0].createdAt", equalsTimestampUpLowerPrecision(savedTask.createdAt.toString()))
+            body("[0].updatedAt", equalsTimestampUpLowerPrecision(savedTask.updatedAt.toString()))
+        }
+    }
+
+    @Test
     fun `should retrieve all tasks for user`() {
         val tasks = List(3) { generateRandomTaskFor(testUsername) }
-//        whenever(taskRepository.findByOwnerUsername(any<String>())).thenReturn(tasks)
+        for (task in tasks) {
+            taskRepository.save(task)
+        }
 
-//        this.performAuthenticatedGet("/api/tasks/")
-//            .andExpect(MockMvcResultMatchers.status().isOk)
-//            .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
-//            .andExpect(MockMvcResultMatchers.jsonPath("$", hasSize<Any>(3)))
-//            .andExpect(MockMvcResultMatchers.jsonPath("$").value(matchesTaskList(tasks))
-//            )
+        Given {
+            contentType(ContentType.JSON)
+            header("Authorization", "Bearer $testUserJwt")
+        } When {
+            get("/api/tasks/")
+        } Then {
+            contentType(ContentType.JSON)
+            statusCode(HttpStatus.OK.value())
+            body("$.size()", equalTo(3))
+        }
     }
 
     @Test
-    @WithMockUser(username = "someUsername", roles = ["USER"])
     fun `should return empty list when retrieving all tasks but no tasks available`() {
-        val tasks = emptyList<Task>()
-//        whenever(taskRepository.findByOwnerUsername(any<String>())).thenReturn(tasks)
-
-//        this.performAuthenticatedGet("/api/tasks/")
-//            .andExpect(MockMvcResultMatchers.status().isOk)
-//            .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
-//            .andExpect(MockMvcResultMatchers.content().json(jacksonObjectMapper().writeValueAsString(tasks))
-//            )
+        Given {
+            contentType(ContentType.JSON)
+            header("Authorization", "Bearer $testUserJwt")
+        } When {
+            get("/api/tasks/")
+        } Then {
+            contentType(ContentType.JSON)
+            statusCode(HttpStatus.OK.value())
+            body("$.size()", equalTo(0))
+        }
     }
 }

@@ -11,9 +11,12 @@ import org.junit.jupiter.api.Test
 import java.time.LocalDate
 
 class DailyPlanControllerComponentTest: BaseComponentTest() {
+    private lateinit var testUserJwt: String
+
     @BeforeEach
     fun setup() {
         registerUser(testUsername, testPassword)
+        testUserJwt = getUserJwt(testUsername, testPassword)
     }
 
     @Test
@@ -24,7 +27,7 @@ class DailyPlanControllerComponentTest: BaseComponentTest() {
 
         Given {
             contentType(ContentType.JSON)
-            header("Authorization", "Bearer ${getUserJwt(testUsername, testPassword)}")
+            header("Authorization", "Bearer $testUserJwt")
         } When {
             get("/daily-plan/${testDate}")
         } Then {
@@ -44,7 +47,7 @@ class DailyPlanControllerComponentTest: BaseComponentTest() {
 
         Given {
             contentType(ContentType.JSON)
-            header("Authorization", "Bearer ${getUserJwt(testUsername, testPassword)}")
+            header("Authorization", "Bearer $testUserJwt")
         } When {
             get("/daily-plan/${testDate}")
         } Then {
