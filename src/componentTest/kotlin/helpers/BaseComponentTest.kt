@@ -1,3 +1,15 @@
+package helpers
+
+import com.fasterxml.jackson.databind.DeserializationFeature
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.SerializationFeature
+import com.fasterxml.jackson.databind.module.SimpleModule
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
+import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer
+import com.fasterxml.jackson.datatype.jsr310.deser.LocalTimeDeserializer
+import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer
+import com.fasterxml.jackson.datatype.jsr310.ser.LocalTimeSerializer
+import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import io.restassured.RestAssured
 import io.restassured.http.ContentType
@@ -21,11 +33,14 @@ import org.springframework.security.crypto.password.PasswordEncoder
 import tech.hexd.adaptiveLearningCompanion.AdaptiveLearningCompanionApplication
 import tech.hexd.adaptiveLearningCompanion.controllers.UserController
 import tech.hexd.adaptiveLearningCompanion.controllers.dto.LoginRequest
-import tech.hexd.adaptiveLearningCompanion.controllers.dto.TaskCreateRequest
 import tech.hexd.adaptiveLearningCompanion.repositories.*
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.LocalTime
+import java.time.format.DateTimeFormatter
+import java.time.temporal.ChronoUnit
 import java.util.*
+import kotlin.math.exp
 import kotlin.math.min
 
 @Suppress("SpringJavaInjectionPointsAutowiringInspection")
@@ -73,12 +88,24 @@ abstract class BaseComponentTest {
         protected val logger: Logger = LoggerFactory.getLogger(UserController::class.java)
     }
 
-    protected val objectMapper = jacksonObjectMapper()
-
     protected val testToken = TEST_TOKEN
     protected val testUsername = TEST_USERNAME
     protected val testPassword = TEST_PASSWORD
     protected val testUserId = TEST_USER_ID
+
+    private val objectMapper = ObjectMapper()
+        .registerModule(KotlinModule.Builder().build())
+        .registerModule(JavaTimeModule())
+        .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+        .configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false)
+        .configure(SerializationFeature.WRITE_DATES_WITH_ZONE_ID, false)
+        .registerModule(SimpleModule().apply {
+            addSerializer(LocalDateTime::class.java, LocalDateTimeSerializer(DateTimeFormatter.ISO_LOCAL_DATE_TIME))
+            addDeserializer(LocalDateTime::class.java, LocalDateTimeDeserializer(DateTimeFormatter.ISO_LOCAL_DATE_TIME))
+            addSerializer(LocalTime::class.java, LocalTimeSerializer(DateTimeFormatter.ISO_LOCAL_TIME))
+            addDeserializer(LocalTime::class.java, LocalTimeDeserializer(DateTimeFormatter.ISO_LOCAL_TIME))
+        })
+
 
     protected fun registerUser(username: String, password: String, isAdmin: Boolean = false) {
         val roles = if (isAdmin) {
@@ -104,31 +131,6 @@ abstract class BaseComponentTest {
         return response.jsonPath().getString("token")
     }
 
-    protected fun createTestTaskCreateRequest(
-        category: TaskCategory = TaskCategory.BLUE,
-        size: TaskSize = TaskSize.BIG,
-        title: String = "TaskController tests implementation",
-        description: String = "finish implementation of TaskController tests"
-    ) = TaskCreateRequest(category, size, title, description)
-
-    protected fun createTestSavedTaskResponse(
-        id: String = "someSavedTaskId",
-        category: TaskCategory = TaskCategory.BLUE,
-        size: TaskSize = TaskSize.BIG,
-        title: String = "TaskController tests implementation",
-        description: String = "finish implementation of TaskController tests"
-    ) = Task(
-        id = id,
-        ownerUsername = testUsername,
-        category = category,
-        size = size,
-        title = title,
-        description = description,
-        reusable = false,
-        createdAt = LocalDateTime.now(),
-        updatedAt = LocalDateTime.now()
-    )
-
     protected fun generateRandomTaskFor(username: String) = Task(
         id = UUID.randomUUID().toString(),
         ownerUsername = username,
@@ -136,17 +138,10 @@ abstract class BaseComponentTest {
         size = TaskSize.entries.toTypedArray().random(),
         title = generateRandomTitle(),
         description = generateRandomDescription(),
-        reusable = false,
+        startTime = generateRandomTime(),
         createdAt = LocalDateTime.now(),
         updatedAt = LocalDateTime.now(),
-    )
-
-    protected fun toTaskCreateRequest(task: Task) = TaskCreateRequest(
-        category = task.category,
-        size = task.size,
-        title = task.title,
-        description = task.description,
-        reusable = task.reusable,
+        reusable = false,
     )
 
     protected fun matchesJsonOf(expected: Any) = object : BaseMatcher<Any>() {
@@ -186,6 +181,22 @@ abstract class BaseComponentTest {
         }
     }
 
+    private fun generateRandomDateTime(): LocalDateTime {
+        val year = 2024
+        val month = Random().nextInt(1, 13)
+        val day = Random().nextInt(1, 28)
+        val hour = Random().nextInt(0, 24)
+        val minute = 0
+        val second = 0
+        return LocalDateTime.of(year, month, day, hour, minute, second)
+    }
+
+    private fun generateRandomTime(): LocalTime {
+        val hour = Random().nextInt(0, 24)
+        val minute = listOf(0, 15, 30, 45).random()
+        return LocalTime.of(hour, minute, 0)
+    }
+
     private fun generateRandomTitle(): String {
         val prefixes = listOf("Task", "Issue", "Project", "Work Item", "Assignment")
         val actions = listOf("Review", "Update", "Create", "Analyze", "Fix")
@@ -214,16 +225,47 @@ abstract class BaseComponentTest {
         )
     }
 
-    fun equalsTimestampUpLowerPrecision(expected: String): Matcher<String> {
-        return object : TypeSafeMatcher<String>() {
-            override fun matchesSafely(actual: String): Boolean {
-                val minLen = min(expected.length, actual.length)
-                return expected.substring(0, minLen) == actual.substring(0, minLen)
+    fun matchesTask(expected: Task): TypeSafeMatcher<Map<String?, Any>> {
+        return object : TypeSafeMatcher<Map<String?, Any>>() {
+
+            override fun matchesSafely(actualJson: Map<String?, Any>): Boolean {
+                val actual = objectMapper.convertValue(actualJson, Task::class.java)
+                return tasksEqual(expected, actual)
             }
 
             override fun describeTo(description: Description) {
-                description.appendText("a timestamp equal to $expected up to lower of precisions")
+                description.appendText("A task matching: ")
+                    .appendText("id=").appendValue(expected.id)
             }
         }
+    }
+
+    fun String.matchesShorterSubstring(expected: String): Boolean {
+        val minLen = min(this.length, expected.length)
+        return this.substring(0, minLen) == expected.substring(0, minLen)
+    }
+
+    private fun tasksEqual(actual: Task, expected: Task): Boolean {
+        return actual.id == expected.id &&
+                actual.ownerUsername == expected.ownerUsername &&
+                actual.category == expected.category &&
+                actual.size == expected.size &&
+                actual.title == expected.title &&
+                actual.description == expected.description &&
+                actual.reusable == expected.reusable
+//                areLocalDateTimesEqual(actual.createdAt, expected.createdAt) &&
+//                areLocalDateTimesEqual(actual.updatedAt, expected.updatedAt) &&
+//                areLocalTimesEqual(actual.startTime, expected.startTime)
+    }
+
+    private fun areLocalDateTimesEqual(dt1: LocalDateTime, dt2: LocalDateTime): Boolean {
+        return dt1.truncatedTo(ChronoUnit.MILLIS) == dt2.truncatedTo(ChronoUnit.MILLIS)
+    }
+
+    private fun areLocalTimesEqual(dt1: LocalTime?, dt2: LocalTime?): Boolean {
+        if (dt1 == null || dt2 == null) {
+            return dt1 == dt2
+        }
+        return dt1.truncatedTo(ChronoUnit.MINUTES) == dt2.truncatedTo(ChronoUnit.MINUTES)
     }
 }

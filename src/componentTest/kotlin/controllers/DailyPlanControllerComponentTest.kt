@@ -1,6 +1,6 @@
 package controllers
 
-import BaseComponentTest
+import helpers.BaseComponentTest
 import io.restassured.http.ContentType
 import io.restassured.module.kotlin.extensions.Given
 import io.restassured.module.kotlin.extensions.Then

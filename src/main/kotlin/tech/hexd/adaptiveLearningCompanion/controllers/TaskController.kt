@@ -1,15 +1,17 @@
 package tech.hexd.adaptiveLearningCompanion.controllers
 
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.Authentication
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.util.UriComponentsBuilder
 import tech.hexd.adaptiveLearningCompanion.controllers.dto.TaskCreateRequest
-import tech.hexd.adaptiveLearningCompanion.repositories.Task
+import tech.hexd.adaptiveLearningCompanion.controllers.dto.TaskUpdateRequest
+import tech.hexd.adaptiveLearningCompanion.controllers.dto.TaskUpdateResponse
 import tech.hexd.adaptiveLearningCompanion.repositories.TaskRepository
 import tech.hexd.adaptiveLearningCompanion.services.TaskService
-import java.time.LocalDateTime
+import tech.hexd.adaptiveLearningCompanion.util.ContextHelper
 
 @RestController
 @RequestMapping("/api/tasks")
@@ -33,29 +35,21 @@ class TaskController(
         return ResponseEntity.created(location).body(savedTask)
     }
 
-    @PutMapping("/{taskId}")
+    @PutMapping("/")
     fun updateTask(
         authentication: Authentication,
-        @PathVariable taskId: String,
-        @RequestBody task: Task
-    ): ResponseEntity<Task> {
+        @RequestBody request: TaskUpdateRequest
+    ): ResponseEntity<TaskUpdateResponse> {
+        val taskId = request.id
         val existingTask = taskRepository.findById(taskId).orElse(null)
             ?: return ResponseEntity.notFound().build()
 
-        if (task.id != taskId) {
+        if (existingTask.ownerUsername != ContextHelper.getCurrentlyLoggedUsername()) {
             return ResponseEntity.badRequest().build()
         }
 
-        val updatedTask = existingTask.copy(
-            category = task.category,
-            size = task.size,
-            title = task.title,
-            description = task.description,
-            updatedAt = LocalDateTime.now(),
-            reusable = task.reusable,
-        )
-
+        val updatedTask = request.applyTo(existingTask)
         val savedTask = taskRepository.save(updatedTask)
-        return ResponseEntity.ok(savedTask)
+        return ResponseEntity.ok().body(TaskUpdateResponse(savedTask))
     }
 }

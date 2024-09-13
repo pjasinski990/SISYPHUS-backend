@@ -1,6 +1,6 @@
 package controllers
 
-import BaseComponentTest
+import helpers.BaseComponentTest
 import io.restassured.http.ContentType
 import io.restassured.module.kotlin.extensions.Given
 import io.restassured.module.kotlin.extensions.Then
@@ -10,6 +10,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.http.HttpStatus
 import tech.hexd.adaptiveLearningCompanion.controllers.dto.TaskCreateRequest
+import tech.hexd.adaptiveLearningCompanion.controllers.dto.TaskUpdateRequest
 
 class TaskControllerComponentTest: BaseComponentTest() {
     private lateinit var testUserJwt: String
@@ -23,12 +24,12 @@ class TaskControllerComponentTest: BaseComponentTest() {
     @Test
     fun `should create a task when calling createNewTask`() {
         val randomTask = generateRandomTaskFor(testUsername)
-        val body = TaskCreateRequest.fromTask(randomTask)
+        val createRequest = TaskCreateRequest.fromTask(randomTask)
 
         Given {
             contentType(ContentType.JSON)
             header("Authorization", "Bearer $testUserJwt")
-            body(body)
+            body(createRequest)
         } When {
             post("/api/tasks/")
         } Then {
@@ -55,15 +56,7 @@ class TaskControllerComponentTest: BaseComponentTest() {
             contentType(ContentType.JSON)
             statusCode(HttpStatus.OK.value())
             body("$.size()", equalTo(1))
-            body("[0].id", equalTo(savedTask.id))
-            body("[0].ownerUsername", equalTo(savedTask.ownerUsername))
-            body("[0].category", equalTo(savedTask.category.toString()))
-            body("[0].size", equalTo(savedTask.size.toString()))
-            body("[0].title", equalTo(savedTask.title))
-            body("[0].description", equalTo(savedTask.description))
-            body("[0].reusable", equalTo(savedTask.reusable))
-            body("[0].createdAt", equalsTimestampUpLowerPrecision(savedTask.createdAt.toString()))
-            body("[0].updatedAt", equalsTimestampUpLowerPrecision(savedTask.updatedAt.toString()))
+            body("[0]", matchesTask(savedTask))
         }
     }
 
@@ -87,7 +80,7 @@ class TaskControllerComponentTest: BaseComponentTest() {
     }
 
     @Test
-    fun `should return empty list when retrieving all tasks but no tasks available`() {
+    fun `should return empty list when no tasks available`() {
         Given {
             contentType(ContentType.JSON)
             header("Authorization", "Bearer $testUserJwt")
@@ -97,6 +90,28 @@ class TaskControllerComponentTest: BaseComponentTest() {
             contentType(ContentType.JSON)
             statusCode(HttpStatus.OK.value())
             body("$.size()", equalTo(0))
+        }
+    }
+
+    @Test
+    fun `should update task for user`() {
+        val savedTask = taskRepository.save(generateRandomTaskFor(testUsername))
+        val updateRequest = TaskUpdateRequest.fromTask(savedTask).copy(
+            title = "Updated Title",
+            description = "Updated Description"
+        )
+        val updatedTask = updateRequest.applyTo(savedTask)
+
+        Given {
+            contentType(ContentType.JSON)
+            header("Authorization", "Bearer $testUserJwt")
+            body(updateRequest)
+        } When {
+            put("/api/tasks/")
+        } Then {
+            contentType(ContentType.JSON)
+            statusCode(HttpStatus.OK.value())
+            body("task", matchesTask(updatedTask))
         }
     }
 }

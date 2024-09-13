@@ -1,6 +1,6 @@
 package controllers
 
-import BaseComponentTest
+import helpers.BaseComponentTest
 import io.restassured.http.ContentType
 import io.restassured.module.kotlin.extensions.Extract
 import io.restassured.module.kotlin.extensions.Given
@@ -96,7 +96,7 @@ class AuthControllerComponentTest: BaseComponentTest() {
     private fun registerAndFail(username: String, password: String): Response {
         return Given {
             contentType(ContentType.JSON)
-            body(RegisterRequest(username = testUsername, password = "invalid"))
+            body(RegisterRequest(username, password))
         } When {
             post("/auth/register")
         } Then {
