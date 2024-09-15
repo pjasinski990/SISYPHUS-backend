@@ -6,9 +6,7 @@ import org.springframework.http.ResponseEntity
 import org.springframework.security.core.Authentication
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.util.UriComponentsBuilder
-import tech.hexd.adaptiveLearningCompanion.controllers.dto.TaskCreateRequest
-import tech.hexd.adaptiveLearningCompanion.controllers.dto.TaskUpdateRequest
-import tech.hexd.adaptiveLearningCompanion.controllers.dto.TaskUpdateResponse
+import tech.hexd.adaptiveLearningCompanion.controllers.dto.*
 import tech.hexd.adaptiveLearningCompanion.repositories.TaskRepository
 import tech.hexd.adaptiveLearningCompanion.services.TaskService
 import tech.hexd.adaptiveLearningCompanion.util.ContextHelper
@@ -45,11 +43,27 @@ class TaskController(
             ?: return ResponseEntity.notFound().build()
 
         if (existingTask.ownerUsername != ContextHelper.getCurrentlyLoggedUsername()) {
-            return ResponseEntity.badRequest().build()
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build()
         }
 
         val updatedTask = request.applyTo(existingTask)
         val savedTask = taskRepository.save(updatedTask)
         return ResponseEntity.ok().body(TaskUpdateResponse(savedTask))
+    }
+
+    @DeleteMapping("/{taskId}")
+    fun deleteTask(
+        authentication: Authentication,
+        @PathVariable taskId: String
+    ): ResponseEntity<TaskDeleteResponse> {
+        val deletedTask = taskRepository.findById(taskId).orElse(null)
+            ?: return ResponseEntity.notFound().build()
+
+        if (deletedTask.ownerUsername != ContextHelper.getCurrentlyLoggedUsername()) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build()
+        }
+
+        taskRepository.delete(deletedTask)
+        return ResponseEntity.ok().body(TaskDeleteResponse(deletedTask))
     }
 }
