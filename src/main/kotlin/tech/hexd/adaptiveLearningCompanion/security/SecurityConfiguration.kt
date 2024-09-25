@@ -48,14 +48,13 @@ class SecurityConfiguration(
                         response.sendError(HttpStatus.UNAUTHORIZED.value(), "Unauthorized")
                     }
             }
-
         return http.build()
     }
 
     @Bean
     fun corsConfigurationSource(): CorsConfigurationSource {
         val configuration = CorsConfiguration()
-        configuration.allowedOriginPatterns = listOf("http://localhost:[*]")
+        configuration.allowedOriginPatterns = listOf("http://localhost:[*]", "https://192.168.[*]")
         configuration.allowedMethods = listOf("GET", "POST", "PUT", "DELETE", "OPTIONS")
         configuration.allowedHeaders = listOf("*")
         configuration.allowCredentials = true

@@ -7,6 +7,7 @@ import tech.hexd.adaptiveLearningCompanion.repositories.TaskSize
 import java.security.InvalidParameterException
 import java.time.LocalDateTime
 import java.time.LocalTime
+import java.time.Duration
 
 data class TaskUpdateRequest(
     val id: String,
@@ -14,9 +15,10 @@ data class TaskUpdateRequest(
     val size: TaskSize,
     val title: String,
     val description: String,
-    val reusable: Boolean = false,
+    val listName: String,
     @DateTimeFormat(iso = DateTimeFormat.ISO.TIME)
     val startTime: LocalTime? = null,
+    val duration: Duration? = null,
 ) {
     companion object {
         fun fromTask(task: Task) = TaskUpdateRequest(
@@ -25,8 +27,9 @@ data class TaskUpdateRequest(
             size = task.size,
             title = task.title,
             description = task.description,
-            reusable = task.reusable,
+            listName = task.listName,
             startTime = task.startTime,
+            duration = task.duration,
         )
     }
 
@@ -38,9 +41,10 @@ data class TaskUpdateRequest(
         size = this.size,
         title = this.title,
         description = this.description,
-        reusable = this.reusable,
+        listName = this.listName,
         startTime = this.startTime,
-        updatedAt = LocalDateTime.now(),
+        duration = this.duration,
+        updatedAt = task.updatedAt,
     )
 }
 

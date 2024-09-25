@@ -10,7 +10,6 @@ import com.fasterxml.jackson.datatype.jsr310.deser.LocalTimeDeserializer
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalTimeSerializer
 import com.fasterxml.jackson.module.kotlin.KotlinModule
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import io.restassured.RestAssured
 import io.restassured.http.ContentType
 import io.restassured.module.kotlin.extensions.Extract
@@ -19,7 +18,6 @@ import io.restassured.module.kotlin.extensions.Then
 import io.restassured.module.kotlin.extensions.When
 import org.hamcrest.BaseMatcher
 import org.hamcrest.Description
-import org.hamcrest.Matcher
 import org.hamcrest.TypeSafeMatcher
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
@@ -34,13 +32,13 @@ import tech.hexd.adaptiveLearningCompanion.AdaptiveLearningCompanionApplication
 import tech.hexd.adaptiveLearningCompanion.controllers.UserController
 import tech.hexd.adaptiveLearningCompanion.controllers.dto.LoginRequest
 import tech.hexd.adaptiveLearningCompanion.repositories.*
+import java.time.Duration
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
 import java.util.*
-import kotlin.math.exp
 import kotlin.math.min
 
 @Suppress("SpringJavaInjectionPointsAutowiringInspection")
@@ -141,7 +139,8 @@ abstract class BaseComponentTest {
         startTime = generateRandomTime(),
         createdAt = LocalDateTime.now(),
         updatedAt = LocalDateTime.now(),
-        reusable = false,
+        listName = "INBOX",
+        duration = Duration.ofHours(2),
     )
 
     protected fun matchesJsonOf(expected: Any) = object : BaseMatcher<Any>() {
@@ -252,10 +251,11 @@ abstract class BaseComponentTest {
                 actual.size == expected.size &&
                 actual.title == expected.title &&
                 actual.description == expected.description &&
-                actual.reusable == expected.reusable
-//                areLocalDateTimesEqual(actual.createdAt, expected.createdAt) &&
-//                areLocalDateTimesEqual(actual.updatedAt, expected.updatedAt) &&
-//                areLocalTimesEqual(actual.startTime, expected.startTime)
+                actual.listName == expected.listName &&
+                actual.duration == expected.duration &&
+                areLocalDateTimesEqual(actual.createdAt, expected.createdAt) &&
+                areLocalDateTimesEqual(actual.updatedAt, expected.updatedAt) &&
+                areLocalTimesEqual(actual.startTime, expected.startTime)
     }
 
     private fun areLocalDateTimesEqual(dt1: LocalDateTime, dt2: LocalDateTime): Boolean {

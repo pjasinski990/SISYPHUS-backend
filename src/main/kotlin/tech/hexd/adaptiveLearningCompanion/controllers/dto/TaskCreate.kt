@@ -7,15 +7,17 @@ import tech.hexd.adaptiveLearningCompanion.repositories.TaskSize
 import tech.hexd.adaptiveLearningCompanion.util.ContextHelper
 import java.time.LocalDateTime
 import java.time.LocalTime
+import java.time.Duration
 
 data class TaskCreateRequest(
     val category: TaskCategory,
     val size: TaskSize,
     val title: String,
     val description: String,
-    val reusable: Boolean = false,
+    val listName: String,
     @DateTimeFormat(iso = DateTimeFormat.ISO.TIME)
     val startTime: LocalTime? = null,
+    val duration: Duration? = null,
 ) {
     companion object {
         fun fromTask(task: Task) = TaskCreateRequest(
@@ -23,8 +25,9 @@ data class TaskCreateRequest(
             size = task.size,
             title = task.title,
             description = task.description,
-            reusable = task.reusable,
+            listName = task.listName,
             startTime = task.startTime,
+            duration = task.duration,
         )
     }
 
@@ -34,9 +37,11 @@ data class TaskCreateRequest(
         size = this.size,
         title = this.title,
         description = this.description,
+        listName = this.listName,
+        startTime = this.startTime,
+        duration = this.duration,
         createdAt = LocalDateTime.now(),
         updatedAt = LocalDateTime.now(),
-        reusable = this.reusable,
     )
 }
 

@@ -8,6 +8,7 @@ import org.springframework.data.annotation.Id
 import org.springframework.data.mongodb.core.mapping.Document
 import org.springframework.data.mongodb.repository.MongoRepository
 import org.springframework.stereotype.Repository
+import java.time.Duration
 import java.time.LocalDateTime
 import java.time.LocalTime
 
@@ -34,14 +35,15 @@ data class Task (
     val size: TaskSize,
     val title: String,
     val description: String,
-    val reusable: Boolean,
+    val listName: String,
+    val startTime: LocalTime? = null,
+    val duration: Duration? = null,
     @JsonDeserialize(using = LocalDateTimeDeserializer::class)
     @JsonSerialize(using = LocalDateTimeSerializer::class)
     val createdAt: LocalDateTime,
     @JsonDeserialize(using = LocalDateTimeDeserializer::class)
     @JsonSerialize(using = LocalDateTimeSerializer::class)
     val updatedAt: LocalDateTime,
-    val startTime: LocalTime? = null,
 )
 
 @Repository
