@@ -1,6 +1,9 @@
 package tech.hexd.adaptiveLearningCompanion.controllers.dto
 
-import org.springframework.format.annotation.DateTimeFormat
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize
+import com.fasterxml.jackson.databind.annotation.JsonSerialize
+import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer
+import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer
 import tech.hexd.adaptiveLearningCompanion.repositories.Task
 import tech.hexd.adaptiveLearningCompanion.repositories.TaskCategory
 import tech.hexd.adaptiveLearningCompanion.repositories.TaskSize
@@ -11,14 +14,16 @@ import java.time.Duration
 
 data class TaskUpdateRequest(
     val id: String,
-    val category: TaskCategory,
-    val size: TaskSize,
-    val title: String,
-    val description: String,
-    val listName: String,
-    @DateTimeFormat(iso = DateTimeFormat.ISO.TIME)
+    val title: String? = null,
+    val description: String? = null,
+    val category: TaskCategory? = null,
+    val size: TaskSize? = null,
+    val listName: String? = null,
     val startTime: LocalTime? = null,
     val duration: Duration? = null,
+    @JsonDeserialize(using = LocalDateTimeDeserializer::class)
+    @JsonSerialize(using = LocalDateTimeSerializer::class)
+    val finishedDate: LocalDateTime? = null,
 ) {
     companion object {
         fun fromTask(task: Task) = TaskUpdateRequest(
@@ -30,6 +35,7 @@ data class TaskUpdateRequest(
             listName = task.listName,
             startTime = task.startTime,
             duration = task.duration,
+            finishedDate = task.finishedAt,
         )
     }
 
@@ -37,14 +43,15 @@ data class TaskUpdateRequest(
         id = task.id,
         ownerUsername = task.ownerUsername,
         createdAt = task.createdAt,
-        category = this.category,
-        size = this.size,
-        title = this.title,
-        description = this.description,
-        listName = this.listName,
-        startTime = this.startTime,
-        duration = this.duration,
-        updatedAt = task.updatedAt,
+        category = this.category ?: task.category,
+        size = this.size ?: task.size,
+        title = this.title ?: task.title,
+        description = this.description ?: task.description,
+        listName = this.listName ?: task.listName,
+        startTime = this.startTime ?: task.startTime,
+        duration = this.duration ?: task.duration,
+        updatedAt = LocalDateTime.now(),
+        finishedAt = this.finishedDate ?: task.finishedAt
     )
 }
 

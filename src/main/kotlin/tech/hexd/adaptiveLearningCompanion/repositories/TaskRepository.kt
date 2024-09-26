@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer
 import org.springframework.data.annotation.Id
+import org.springframework.data.mongodb.core.index.Indexed
 import org.springframework.data.mongodb.core.mapping.Document
 import org.springframework.data.mongodb.repository.MongoRepository
 import org.springframework.stereotype.Repository
@@ -44,9 +45,14 @@ data class Task (
     @JsonDeserialize(using = LocalDateTimeDeserializer::class)
     @JsonSerialize(using = LocalDateTimeSerializer::class)
     val updatedAt: LocalDateTime,
+    @Indexed(expireAfterSeconds = 2592000)  // 30 days
+    @JsonDeserialize(using = LocalDateTimeDeserializer::class)
+    @JsonSerialize(using = LocalDateTimeSerializer::class)
+    val finishedAt: LocalDateTime? = null
 )
 
 @Repository
 interface TaskRepository : MongoRepository<Task, String> {
     fun findByOwnerUsername(ownerUsername: String): List<Task>
+    fun findByOwnerUsernameAndListName(ownerUsername: String, listName: String): List<Task>
 }

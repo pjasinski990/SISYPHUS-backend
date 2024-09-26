@@ -6,7 +6,10 @@ import org.springframework.http.ResponseEntity
 import org.springframework.security.core.Authentication
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.util.UriComponentsBuilder
-import tech.hexd.adaptiveLearningCompanion.controllers.dto.*
+import tech.hexd.adaptiveLearningCompanion.controllers.dto.TaskCreateRequest
+import tech.hexd.adaptiveLearningCompanion.controllers.dto.TaskDeleteResponse
+import tech.hexd.adaptiveLearningCompanion.controllers.dto.TaskUpdateRequest
+import tech.hexd.adaptiveLearningCompanion.controllers.dto.TaskUpdateResponse
 import tech.hexd.adaptiveLearningCompanion.repositories.TaskRepository
 import tech.hexd.adaptiveLearningCompanion.services.TaskService
 import tech.hexd.adaptiveLearningCompanion.util.ContextHelper
@@ -20,6 +23,12 @@ class TaskController(
     @GetMapping("/")
     fun getAllTasks(authentication: Authentication): ResponseEntity<*> {
         val tasks = taskService.getAllTasksForCurrentUser()
+        return ResponseEntity.ok(tasks)
+    }
+
+    @GetMapping("/list")
+    fun getAllListTasks(authentication: Authentication, @RequestParam listName: String): ResponseEntity<*> {
+        val tasks = taskService.getAllListTasksForCurrentUser(listName)
         return ResponseEntity.ok(tasks)
     }
 
@@ -38,8 +47,7 @@ class TaskController(
         authentication: Authentication,
         @RequestBody request: TaskUpdateRequest
     ): ResponseEntity<TaskUpdateResponse> {
-        val taskId = request.id
-        val existingTask = taskRepository.findById(taskId).orElse(null)
+        val existingTask = taskRepository.findById(request.id).orElse(null)
             ?: return ResponseEntity.notFound().build()
 
         if (existingTask.ownerUsername != ContextHelper.getCurrentlyLoggedUsername()) {
@@ -47,7 +55,7 @@ class TaskController(
         }
 
         val updatedTask = request.applyTo(existingTask)
-        val savedTask = taskRepository.save(updatedTask)
+        val savedTask = taskService.updateTaskForCurrentUser(updatedTask)
         return ResponseEntity.ok().body(TaskUpdateResponse(savedTask))
     }
 
