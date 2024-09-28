@@ -72,7 +72,7 @@ class TaskServiceTest {
     @Test
     fun `should decrement statistics when task is marked as incomplete`() {
         val taskId = "taskId2"
-        val finishedDate = LocalDateTime.now()
+        val finishedAt = LocalDateTime.now()
         val existingTask = Task(
             id = taskId,
             ownerUsername = "testUser",
@@ -83,7 +83,7 @@ class TaskServiceTest {
             listName = "ToDo",
             createdAt = LocalDateTime.now(),
             updatedAt = LocalDateTime.now(),
-            finishedAt = finishedDate
+            finishedAt = finishedAt
         )
         val updatedTask = existingTask.copy(finishedAt = null)
 
@@ -112,7 +112,7 @@ class TaskServiceTest {
     @Test
     fun `should update statistics when qualifiers change on a completed task`() {
         val taskId = "taskId3"
-        val finishedDate = LocalDateTime.now()
+        val finishedAt = LocalDateTime.now()
         val existingTask = Task(
             id = taskId,
             ownerUsername = "testUser",
@@ -123,7 +123,7 @@ class TaskServiceTest {
             listName = "ToDo",
             createdAt = LocalDateTime.now(),
             updatedAt = LocalDateTime.now(),
-            finishedAt = finishedDate
+            finishedAt = finishedAt
         )
         val updatedTask = existingTask.copy(category = TaskCategory.RED, size = TaskSize.BIG)
 
@@ -156,9 +156,9 @@ class TaskServiceTest {
     }
 
     @Test
-    fun `should handle edge case where task is marked incomplete and qualifiers change`() {
+    fun `should handle case where task is moved from finished and qualifiers change`() {
         val taskId = "taskId4"
-        val finishedDate = LocalDateTime.now()
+        val finishedAt = LocalDateTime.now()
         val existingTask = Task(
             id = taskId,
             ownerUsername = "testUser",
@@ -169,7 +169,7 @@ class TaskServiceTest {
             listName = "ToDo",
             createdAt = LocalDateTime.now(),
             updatedAt = LocalDateTime.now(),
-            finishedAt = finishedDate
+            finishedAt = finishedAt
         )
         val updatedTask = existingTask.copy(
             finishedAt = null,

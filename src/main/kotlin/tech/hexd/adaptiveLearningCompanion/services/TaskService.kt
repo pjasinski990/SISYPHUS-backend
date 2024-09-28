@@ -1,10 +1,13 @@
 package tech.hexd.adaptiveLearningCompanion.services
 
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import org.springframework.data.mongodb.core.MongoOperations
 import org.springframework.data.mongodb.core.query.Criteria
 import org.springframework.data.mongodb.core.query.Query
 import org.springframework.data.mongodb.core.query.Update
 import org.springframework.stereotype.Service
+import tech.hexd.adaptiveLearningCompanion.controllers.UserController
 import tech.hexd.adaptiveLearningCompanion.repositories.Task
 import tech.hexd.adaptiveLearningCompanion.repositories.TaskRepository
 import tech.hexd.adaptiveLearningCompanion.repositories.TaskStatistics
@@ -13,8 +16,10 @@ import tech.hexd.adaptiveLearningCompanion.util.ContextHelper
 @Service
 class TaskService(
     private val taskRepository: TaskRepository,
-    private val mongoOperations: MongoOperations
+    private val mongoOperations: MongoOperations,
 ) {
+    protected val logger: Logger = LoggerFactory.getLogger(UserController::class.java)
+
     fun getAllTasksForCurrentUser(): List<Task> {
         val username = ContextHelper.getCurrentlyLoggedUsername()
         return taskRepository.findByOwnerUsername(username)

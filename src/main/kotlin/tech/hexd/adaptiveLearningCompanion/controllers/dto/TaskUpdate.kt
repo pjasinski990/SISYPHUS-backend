@@ -23,7 +23,7 @@ data class TaskUpdateRequest(
     val duration: Duration? = null,
     @JsonDeserialize(using = LocalDateTimeDeserializer::class)
     @JsonSerialize(using = LocalDateTimeSerializer::class)
-    val finishedDate: LocalDateTime? = null,
+    val finishedAt: LocalDateTime? = null,
 ) {
     companion object {
         fun fromTask(task: Task) = TaskUpdateRequest(
@@ -35,7 +35,7 @@ data class TaskUpdateRequest(
             listName = task.listName,
             startTime = task.startTime,
             duration = task.duration,
-            finishedDate = task.finishedAt,
+            finishedAt = task.finishedAt,
         )
     }
 
@@ -46,12 +46,12 @@ data class TaskUpdateRequest(
         category = this.category ?: task.category,
         size = this.size ?: task.size,
         title = this.title ?: task.title,
-        description = this.description ?: task.description,
+        description = this.description,
         listName = this.listName ?: task.listName,
-        startTime = this.startTime ?: task.startTime,
-        duration = this.duration ?: task.duration,
+        startTime = this.startTime,
+        duration = this.duration,
         updatedAt = LocalDateTime.now(),
-        finishedAt = this.finishedDate ?: task.finishedAt
+        finishedAt = this.finishedAt
     )
 }
 

@@ -83,6 +83,7 @@ abstract class BaseComponentTest {
         const val TEST_PASSWORD = "somePassword"
         const val TEST_USER_ID = "someUserId"
 
+        @JvmStatic
         protected val logger: Logger = LoggerFactory.getLogger(UserController::class.java)
     }
 
@@ -141,6 +142,7 @@ abstract class BaseComponentTest {
         updatedAt = LocalDateTime.now(),
         listName = "INBOX",
         duration = Duration.ofHours(2),
+        finishedAt = LocalDateTime.now(),
     )
 
     protected fun matchesJsonOf(expected: Any) = object : BaseMatcher<Any>() {

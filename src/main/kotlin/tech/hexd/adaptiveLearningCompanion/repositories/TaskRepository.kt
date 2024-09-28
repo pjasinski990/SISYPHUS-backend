@@ -35,7 +35,7 @@ data class Task (
     val category: TaskCategory,
     val size: TaskSize,
     val title: String,
-    val description: String,
+    val description: String?,
     val listName: String,
     val startTime: LocalTime? = null,
     val duration: Duration? = null,

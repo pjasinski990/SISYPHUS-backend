@@ -13,7 +13,7 @@ data class TaskCreateRequest(
     val category: TaskCategory,
     val size: TaskSize,
     val title: String,
-    val description: String,
+    val description: String?,
     val listName: String,
     @DateTimeFormat(iso = DateTimeFormat.ISO.TIME)
     val startTime: LocalTime? = null,

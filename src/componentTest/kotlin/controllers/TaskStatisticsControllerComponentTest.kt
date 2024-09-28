@@ -2,6 +2,7 @@ package controllers
 
 import helpers.BaseComponentTest
 import io.restassured.http.ContentType
+import io.restassured.module.kotlin.extensions.Extract
 import io.restassured.module.kotlin.extensions.Given
 import io.restassured.module.kotlin.extensions.Then
 import io.restassured.module.kotlin.extensions.When
@@ -25,14 +26,13 @@ class TaskStatisticsControllerComponentTest : BaseComponentTest() {
     fun `should retrieve task statistics for user`() {
         val date = LocalDate.of(2024, 9, 25)
         val task = generateRandomTaskFor(testUsername).copy(finishedAt = null)
-        taskRepository.save(task)
+        logger.warn(task.toString())
+        val savedTask = taskRepository.save(task)
 
-        val updateRequest = TaskUpdateRequest(
-            id = task.id!!,
-            finishedDate = date.atStartOfDay(),
-        )
+        val updateRequest = TaskUpdateRequest.fromTask(savedTask).copy(finishedAt = date.atStartOfDay())
+        logger.warn(updateRequest.toString())
 
-        Given {
+        val response = Given {
             contentType(ContentType.JSON)
             header("Authorization", "Bearer $testUserJwt")
             body(updateRequest)
@@ -40,7 +40,11 @@ class TaskStatisticsControllerComponentTest : BaseComponentTest() {
             put("/api/tasks/")
         } Then {
             statusCode(HttpStatus.OK.value())
+            body("task", matchesTask(task))
+        } Extract {
+            response()
         }
+        logger.warn(response.toString())
 
         Given {
             contentType(ContentType.JSON)
