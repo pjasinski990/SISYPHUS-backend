@@ -14,4 +14,9 @@ class TaskStatisticsService(
         val username = ContextHelper.getCurrentlyLoggedUsername()
         return taskStatisticsRepository.findByOwnerUsernameAndDate(username, date)
     }
+
+    fun getStatisticsForCurrentUserBetweenDates(startDate: LocalDate, endDate: LocalDate): List<TaskStatistics> {
+        val username = ContextHelper.getCurrentlyLoggedUsername()
+        return taskStatisticsRepository.findByOwnerUsernameAndDateBetween(username, startDate, endDate)
+    }
 }

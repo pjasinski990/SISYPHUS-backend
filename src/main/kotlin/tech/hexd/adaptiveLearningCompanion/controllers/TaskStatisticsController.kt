@@ -13,12 +13,22 @@ import java.time.LocalDate
 class TaskStatisticsController(
     private val taskStatisticsService: TaskStatisticsService
 ) {
-    @GetMapping("/")
-    fun getTaskStatistics(
+    @GetMapping("/date")
+    fun getTaskStatisticsForDate(
         authentication: Authentication,
         @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) date: LocalDate
     ): ResponseEntity<List<TaskStatistics>> {
         val statistics = taskStatisticsService.getStatisticsForCurrentUserOnDate(date)
+        return ResponseEntity.ok(statistics)
+    }
+
+    @GetMapping("/between")
+    fun getTaskStatisticsBetweenDates(
+        authentication: Authentication,
+        @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) startDate: LocalDate,
+        @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) endDate: LocalDate
+    ): ResponseEntity<List<TaskStatistics>> {
+        val statistics = taskStatisticsService.getStatisticsForCurrentUserBetweenDates(startDate, endDate)
         return ResponseEntity.ok(statistics)
     }
 }

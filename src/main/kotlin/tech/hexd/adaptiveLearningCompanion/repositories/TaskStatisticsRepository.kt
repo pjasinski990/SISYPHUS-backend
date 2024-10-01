@@ -20,4 +20,5 @@ data class TaskStatistics(
 @Repository
 interface TaskStatisticsRepository : MongoRepository<TaskStatistics, String> {
     fun findByOwnerUsernameAndDate(ownerUsername: String, date: LocalDate): List<TaskStatistics>
+    fun findByOwnerUsernameAndDateBetween(username: String, startDate: LocalDate, endDate: LocalDate): List<TaskStatistics>
 }

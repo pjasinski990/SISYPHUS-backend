@@ -51,7 +51,7 @@ class TaskStatisticsControllerComponentTest : BaseComponentTest() {
             header("Authorization", "Bearer $testUserJwt")
             param("date", date.toString())
         } When {
-            get("/api/task-statistics/")
+            get("/api/task-statistics/date")
         } Then {
             contentType(ContentType.JSON)
             statusCode(HttpStatus.OK.value())
