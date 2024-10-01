@@ -6,6 +6,7 @@ import org.springframework.data.mongodb.core.MongoOperations
 import org.springframework.data.mongodb.core.query.Criteria
 import org.springframework.data.mongodb.core.query.Query
 import org.springframework.data.mongodb.core.query.Update
+import org.springframework.security.access.AccessDeniedException
 import org.springframework.stereotype.Service
 import tech.hexd.adaptiveLearningCompanion.controllers.UserController
 import tech.hexd.adaptiveLearningCompanion.repositories.Task
@@ -66,6 +67,23 @@ class TaskService(
             }
         }
         return savedTask
+    }
+
+    fun deleteTaskForCurrentUser(taskId: String): Task {
+        val username = ContextHelper.getCurrentlyLoggedUsername()
+        val existingTask = taskRepository.findById(taskId).orElseThrow {
+            NoSuchElementException("Task not found")
+        }
+
+        if (existingTask.ownerUsername != username) {
+            throw AccessDeniedException("You do not have permission to delete this task")
+        }
+        taskRepository.delete(existingTask)
+        if (existingTask.finishedAt != null) {
+            decrementStatisticsForTask(existingTask)
+        }
+
+        return existingTask
     }
 
     private fun qualifiersOrDateChanged(oldTask: Task, newTask: Task): Boolean {

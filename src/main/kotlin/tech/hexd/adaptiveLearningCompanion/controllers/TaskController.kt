@@ -64,14 +64,15 @@ class TaskController(
         authentication: Authentication,
         @PathVariable taskId: String
     ): ResponseEntity<TaskDeleteResponse> {
-        val deletedTask = taskRepository.findById(taskId).orElse(null)
-            ?: return ResponseEntity.notFound().build()
-
-        if (deletedTask.ownerUsername != ContextHelper.getCurrentlyLoggedUsername()) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build()
+        return try {
+            val deletedTask = taskService.deleteTaskForCurrentUser(taskId)
+            ResponseEntity.ok().body(TaskDeleteResponse(deletedTask))
+        } catch (e: NoSuchElementException) {
+            ResponseEntity.notFound().build()
+        } catch (e: AccessDeniedException) {
+            ResponseEntity.status(HttpStatus.FORBIDDEN).build()
+        } catch (e: Exception) {
+            ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build()
         }
-
-        taskRepository.delete(deletedTask)
-        return ResponseEntity.ok().body(TaskDeleteResponse(deletedTask))
     }
 }
