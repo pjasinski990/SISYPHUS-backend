@@ -62,7 +62,6 @@ abstract class BaseComponentTest {
     fun baseCleanup() {
         appUserRepository.deleteAll()
         taskRepository.deleteAll()
-        dailyPlanRepository.deleteAll()
     }
 
     @Autowired
@@ -70,9 +69,6 @@ abstract class BaseComponentTest {
 
     @Autowired
     protected lateinit var taskRepository: TaskRepository
-
-    @Autowired
-    protected lateinit var dailyPlanRepository: DailyPlanRepository
 
     @Autowired
     protected lateinit var passwordEncoder: PasswordEncoder
@@ -212,18 +208,6 @@ abstract class BaseComponentTest {
         val nouns = listOf("feature", "bug", "module", "function", "algorithm")
 
         return "${adjectives.random()} task: ${verbs.random()} the ${nouns.random()}"
-    }
-
-    protected fun createRandomDailyPlanFor(username: String, date: LocalDate): DailyPlan {
-        val todo = List(3) { generateRandomTaskFor(username) }
-        val done = List(3) { generateRandomTaskFor(username) }
-        return DailyPlan(
-            id = UUID.randomUUID().toString(),
-            ownerUsername = username,
-            day = date,
-            todo = todo,
-            done = done,
-        )
     }
 
     fun matchesTask(expected: Task): TypeSafeMatcher<Map<String?, Any>> {
