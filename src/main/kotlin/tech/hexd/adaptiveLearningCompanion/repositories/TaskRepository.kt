@@ -50,7 +50,6 @@ data class Task (
     @JsonDeserialize(using = LocalDateTimeDeserializer::class)
     @JsonSerialize(using = LocalDateTimeSerializer::class)
     val updatedAt: LocalDateTime,
-    @Indexed(expireAfterSeconds = 2592000)  // 30 days
     @JsonDeserialize(using = LocalDateTimeDeserializer::class)
     @JsonSerialize(using = LocalDateTimeSerializer::class)
     val finishedAt: LocalDateTime? = null
