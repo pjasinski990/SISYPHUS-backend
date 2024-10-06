@@ -1,5 +1,9 @@
 package tech.hexd.adaptiveLearningCompanion.controllers.dto
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize
+import com.fasterxml.jackson.databind.annotation.JsonSerialize
+import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer
+import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer
 import org.springframework.format.annotation.DateTimeFormat
 import tech.hexd.adaptiveLearningCompanion.repositories.Task
 import tech.hexd.adaptiveLearningCompanion.repositories.TaskCategory
@@ -15,9 +19,13 @@ data class TaskCreateRequest(
     val title: String,
     val description: String?,
     val listName: String,
-    @DateTimeFormat(iso = DateTimeFormat.ISO.TIME)
     val startTime: LocalTime? = null,
     val duration: Duration? = null,
+    @JsonDeserialize(using = LocalDateTimeDeserializer::class)
+    @JsonSerialize(using = LocalDateTimeSerializer::class)
+    val deadline: LocalDateTime? = null,
+    val dependencies: List<String>? = null,
+    val flexibility: Float? = null,
 ) {
     companion object {
         fun fromTask(task: Task) = TaskCreateRequest(
@@ -28,6 +36,9 @@ data class TaskCreateRequest(
             listName = task.listName,
             startTime = task.startTime,
             duration = task.duration,
+            deadline = task.deadline,
+            dependencies = task.dependencies,
+            flexibility = task.flexibility,
         )
     }
 
@@ -40,6 +51,9 @@ data class TaskCreateRequest(
         listName = this.listName,
         startTime = this.startTime,
         duration = this.duration,
+        deadline = this.deadline,
+        dependencies = this.dependencies,
+        flexibility = this.flexibility,
         createdAt = LocalDateTime.now(),
         updatedAt = LocalDateTime.now(),
     )

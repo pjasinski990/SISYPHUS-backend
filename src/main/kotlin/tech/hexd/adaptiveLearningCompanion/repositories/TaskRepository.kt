@@ -41,6 +41,11 @@ data class Task (
     val duration: Duration? = null,
     @JsonDeserialize(using = LocalDateTimeDeserializer::class)
     @JsonSerialize(using = LocalDateTimeSerializer::class)
+    val deadline: LocalDateTime? = null,
+    val dependencies: List<String>? = null,
+    val flexibility: Float? = null,
+    @JsonDeserialize(using = LocalDateTimeDeserializer::class)
+    @JsonSerialize(using = LocalDateTimeSerializer::class)
     val createdAt: LocalDateTime,
     @JsonDeserialize(using = LocalDateTimeDeserializer::class)
     @JsonSerialize(using = LocalDateTimeSerializer::class)
