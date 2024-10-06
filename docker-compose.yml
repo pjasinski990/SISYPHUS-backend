@@ -12,8 +12,12 @@ services:
     environment:
       - SPRING_DATA_MONGODB_URI=mongodb://mongodb:27017/adaptive_learning_companion
       - SPRING_PROFILES_ACTIVE=${SPRING_PROFILE:-default}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
     depends_on:
       - mongodb
+      - fastapi-server
+    networks:
+      - backend
 
   mongodb:
     image: mongo:latest
@@ -21,7 +25,20 @@ services:
       - "27017:27017"
     volumes:
       - mongodb_data:/data/db
+    networks:
+      - backend
+
+  fastapi-server:
+    build:
+      context: ./fastapi-server
+    ports:
+      - "8000:8000"
+    networks:
+      - backend
 
 volumes:
   mongodb_data:
   gradle-cache:
+
+networks:
+  backend:
