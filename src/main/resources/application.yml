@@ -3,7 +3,7 @@ spring.data.mongodb.uri: mongodb://localhost:27017/adaptive_learning_companion
 
 openai.api:
   model: "gpt-4o-mini-2024-07-18"
-  max_tokens: 150
+  max_completion_tokens: 150
   key: ${OPENAI_API_KEY}
 
 logging.level.root: INFO

@@ -1,11 +1,11 @@
 package tech.hexd.adaptiveLearningCompanion.repositories
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer
 import org.springframework.data.annotation.Id
-import org.springframework.data.mongodb.core.index.Indexed
 import org.springframework.data.mongodb.core.mapping.Document
 import org.springframework.data.mongodb.repository.MongoRepository
 import org.springframework.stereotype.Repository
@@ -28,6 +28,7 @@ enum class TaskSize {
 }
 
 @Document(collection = "tasks")
+@JsonIgnoreProperties(ignoreUnknown = true)
 data class Task (
     @Id
     val id: String? = null,
