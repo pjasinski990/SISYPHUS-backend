@@ -8,10 +8,7 @@ import org.springframework.http.*
 import org.springframework.stereotype.Service
 import org.springframework.web.client.HttpClientErrorException
 import org.springframework.web.client.RestTemplate
-import tech.hexd.adaptiveLearningCompanion.dependencies.dto.ChatMessage
-import tech.hexd.adaptiveLearningCompanion.dependencies.dto.OpenAIChatRequest
-import tech.hexd.adaptiveLearningCompanion.dependencies.dto.OpenAIChatResponse
-import tech.hexd.adaptiveLearningCompanion.dependencies.dto.OpenAICreateTaskFunction
+import tech.hexd.adaptiveLearningCompanion.dependencies.dto.*
 import tech.hexd.adaptiveLearningCompanion.dependencies.dto.OpenAICreateTaskFunction.OpenAICreatedTask
 
 @Service
@@ -28,8 +25,8 @@ class OpenAIService(
     @Value("\${openai.api.model}")
     private lateinit var model: String
 
-    @Value("\${openai.api.max_completion_tokens}")
-    private var maxCompletionTokens: Int = 150
+    @Value("\${openai.api.max_tokens}")
+    private var maxCompletionTokens: Int = 500
 
     private val openAIUrl = "https://api.openai.com/v1/chat/completions"
 
@@ -40,15 +37,22 @@ class OpenAIService(
         }
 
         val createTaskSchema = OpenAICreateTaskFunction.createTaskSchema
-        logger.info("Function Schema: $createTaskSchema")
+        val createTaskTool = ToolChoice(
+            type = "function",
+            function = Function(
+                name = "create_task",
+                description = "Create a task with the provided information.",
+                parameters = createTaskSchema
+            )
+        )
 
         val requestBody = OpenAIChatRequest(
             model = model,
             messages = listOf(ChatMessage(role = "user", content = inputText)),
             maxCompletionTokens = maxCompletionTokens,
             temperature = null,
-            functions = listOf(createTaskSchema),
-            functionCall = "auto"
+            tools = listOf(createTaskTool),
+            toolChoice = "auto",
         )
 
         val requestBodyJson = try {
@@ -57,11 +61,9 @@ class OpenAIService(
             logger.error("Error serializing request body: ${ex.message}", ex)
             return null
         }
-
-        logger.info("Request Body JSON: $requestBodyJson")
+        logger.debug("Request body JSON: $requestBodyJson")
 
         val entity = HttpEntity(requestBodyJson, headers)
-
         return try {
             val response: ResponseEntity<OpenAIChatResponse> = restTemplate.exchange(
                 openAIUrl,
@@ -70,21 +72,26 @@ class OpenAIService(
                 OpenAIChatResponse::class.java
             )
             val openAIResponse = response.body
+            logger.debug("OpenAI API Response: {}", response.body)
             if (openAIResponse != null) {
                 val choice = openAIResponse.choices.firstOrNull()
                 val message = choice?.message
+
                 when {
                     message?.content != null -> {
                         logger.info("Received Content: ${message.content}")
                         message.content.trim()
                     }
-                    message?.functionCall != null -> {
-                        logger.info("Received Function Call: ${message.functionCall}")
-                        parseFunctionCallArguments(message.functionCall.arguments)
+                    message?.toolCalls != null -> {
+                        logger.info("Received Tool Calls: ${message.toolCalls}")
+                        return if (message.toolCalls.firstOrNull() != null) {
+                            parseFunctionCallArguments(message.toolCalls.first().function.arguments)
+                        } else ""
                     }
                     else -> {
-                        logger.warn("No content or function_call found in the response.")
-                        null }
+                        logger.warn("No content or tools call found in the response.")
+                        null
+                    }
                 }
             } else {
                 logger.warn("Response body is null.")
