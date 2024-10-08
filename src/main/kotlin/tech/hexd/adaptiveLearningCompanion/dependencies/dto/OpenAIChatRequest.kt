@@ -3,6 +3,7 @@ package tech.hexd.adaptiveLearningCompanion.dependencies.dto
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonProperty
+import tech.hexd.adaptiveLearningCompanion.dependencies.dto.OpenAICreateTaskFunction.OpenAICreatedTask
 import tech.hexd.adaptiveLearningCompanion.repositories.TaskCategory
 import tech.hexd.adaptiveLearningCompanion.repositories.TaskSize
 import java.time.Duration
@@ -55,7 +56,7 @@ class OpenAICreateTaskFunction {
     )
 
     companion object {
-        val createTaskSchema: Map<String, Any> = mapOf(
+        private val createTaskSchema: Map<String, Any> = mapOf(
             "type" to "object",
             "properties" to mapOf(
                 "ownerUsername" to mapOf("type" to "string"),
@@ -70,32 +71,82 @@ class OpenAICreateTaskFunction {
             "required" to listOf("ownerUsername", "category", "size", "title", "listName")
         )
 
+        private val createTaskFunction = Function(
+            name = "create_task",
+            description = "Create a task with the provided information.",
+            parameters = createTaskSchema
+        )
+
+        val createTaskTool = ToolChoice(
+            type = "function",
+            function = createTaskFunction,
+        )
+
         val allTaskFieldsSchema: Map<String, Any> = mapOf(
-            "name" to "all_fields",
-            "description" to "Create a task with the provided information.",
-            "parameters" to mapOf(
-                "type" to "object",
-                "properties" to mapOf(
-                    "id" to mapOf("type" to "string"),
-                    "ownerUsername" to mapOf("type" to "string"),
-                    "category" to mapOf("type" to "string"),
-                    "size" to mapOf("type" to "string"),
-                    "title" to mapOf("type" to "string"),
-                    "description" to mapOf("type" to "string"),
-                    "listName" to mapOf("type" to "string"),
-                    "startTime" to mapOf("type" to "string"),
-                    "duration" to mapOf("type" to "string"),
-                    "dependencies" to mapOf(
-                        "type" to "array",
-                        "items" to mapOf("type" to "string")
-                    ),
-                    "flexibility" to mapOf("type" to "number"),
-                    "createdAt" to mapOf("type" to "string"),
-                    "updatedAt" to mapOf("type" to "string"),
-                    "finishedAt" to mapOf("type" to "string"),
+            "type" to "object",
+            "properties" to mapOf(
+                "id" to mapOf("type" to "string"),
+                "ownerUsername" to mapOf("type" to "string"),
+                "category" to mapOf("type" to "string"),
+                "size" to mapOf("type" to "string"),
+                "title" to mapOf("type" to "string"),
+                "description" to mapOf("type" to "string"),
+                "listName" to mapOf("type" to "string"),
+                "startTime" to mapOf("type" to "string"),
+                "duration" to mapOf("type" to "string"),
+                "dependencies" to mapOf(
+                    "type" to "array",
+                    "items" to mapOf("type" to "string")
                 ),
-                "required" to listOf("ownerUsername", "category")
-            )
+                "flexibility" to mapOf("type" to "number"),
+                "createdAt" to mapOf("type" to "string"),
+                "updatedAt" to mapOf("type" to "string"),
+                "finishedAt" to mapOf("type" to "string"),
+            ),
+            "required" to listOf("ownerUsername", "category")
+        )
+    }
+}
+
+
+@JsonInclude(JsonInclude.Include.NON_NULL)
+data class OpenAICreatedTasks(
+    val tasks: List<OpenAICreatedTask>
+) {
+    companion object {
+        private val createMultipleTasksSchema: Map<String, Any> = mapOf(
+            "type" to "object",
+            "properties" to mapOf(
+                "tasks" to mapOf(
+                    "type" to "array",
+                    "items" to mapOf(
+                        "type" to "object",
+                        "properties" to mapOf(
+                            "ownerUsername" to mapOf("type" to "string"),
+                            "category" to mapOf("type" to "string"),
+                            "size" to mapOf("type" to "string"),
+                            "title" to mapOf("type" to "string"),
+                            "description" to mapOf("type" to "string"),
+                            "listName" to mapOf("type" to "string"),
+                            "duration" to mapOf("type" to "string"),
+                            "flexibility" to mapOf("type" to "number")
+                        ),
+                        "required" to listOf("ownerUsername", "category", "size", "title", "listName")
+                    )
+                )
+            ),
+            "required" to listOf("tasks")
+        )
+
+        private val createMultipleTasksFunction = Function(
+            name = "create_multiple_tasks",
+            description = "Create many tass with the provided information.",
+            parameters = createMultipleTasksSchema
+        )
+
+        val createMultipleTasksTool = ToolChoice(
+            type = "function",
+            function = createMultipleTasksFunction,
         )
     }
 }

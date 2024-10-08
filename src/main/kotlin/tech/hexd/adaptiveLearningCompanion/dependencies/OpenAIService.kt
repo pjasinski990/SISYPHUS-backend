@@ -1,6 +1,7 @@
 package tech.hexd.adaptiveLearningCompanion.dependencies
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.readValue
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
@@ -8,8 +9,11 @@ import org.springframework.http.*
 import org.springframework.stereotype.Service
 import org.springframework.web.client.HttpClientErrorException
 import org.springframework.web.client.RestTemplate
-import tech.hexd.adaptiveLearningCompanion.dependencies.dto.*
-import tech.hexd.adaptiveLearningCompanion.dependencies.dto.OpenAICreateTaskFunction.OpenAICreatedTask
+import tech.hexd.adaptiveLearningCompanion.dependencies.dto.ChatMessage
+import tech.hexd.adaptiveLearningCompanion.dependencies.dto.OpenAIChatRequest
+import tech.hexd.adaptiveLearningCompanion.dependencies.dto.OpenAIChatResponse
+import tech.hexd.adaptiveLearningCompanion.dependencies.dto.OpenAICreatedTasks
+import tech.hexd.adaptiveLearningCompanion.dependencies.dto.OpenAICreatedTasks.Companion.createMultipleTasksTool
 
 @Service
 class OpenAIService(
@@ -36,23 +40,14 @@ class OpenAIService(
             setBearerAuth(apiKey)
         }
 
-        val createTaskSchema = OpenAICreateTaskFunction.createTaskSchema
-        val createTaskTool = ToolChoice(
-            type = "function",
-            function = Function(
-                name = "create_task",
-                description = "Create a task with the provided information.",
-                parameters = createTaskSchema
-            )
-        )
-
+        val message = "Generate a few random tasks. Duration field is ISO time. Category can be RED, YELLOW, GREEN, PINK, and BLUE. Size can be BIG or SMALL."
         val requestBody = OpenAIChatRequest(
             model = model,
-            messages = listOf(ChatMessage(role = "user", content = inputText)),
+            messages = listOf(ChatMessage(role = "user", content = message)),
             maxCompletionTokens = maxCompletionTokens,
             temperature = null,
-            tools = listOf(createTaskTool),
-            toolChoice = "auto",
+            tools = listOf(createMultipleTasksTool),
+            toolChoice = createMultipleTasksTool,
         )
 
         val requestBodyJson = try {
@@ -108,10 +103,17 @@ class OpenAIService(
 
     private fun parseFunctionCallArguments(arguments: String): String? {
         return try {
-            val task: OpenAICreatedTask = objectMapper.readValue(arguments, OpenAICreatedTask::class.java)
-            logger.info("Parsed Task: $task")
-            objectMapper.writeValueAsString(task)
+            // Parse the JSON into the OpenAICreatedTasks wrapper
+            val createdTasks: OpenAICreatedTasks = objectMapper.readValue(arguments)
+
+            // Log the parsed tasks for debugging
+            logger.info("Parsed Tasks: $createdTasks")
+
+            // Optionally, you can process the tasks here before returning
+            // For demonstration, we're returning the same JSON
+            objectMapper.writeValueAsString(createdTasks)
         } catch (ex: Exception) {
+            // Log the error with stack trace for better debugging
             logger.error("Error parsing function call arguments: ${ex.message}", ex)
             null
         }
