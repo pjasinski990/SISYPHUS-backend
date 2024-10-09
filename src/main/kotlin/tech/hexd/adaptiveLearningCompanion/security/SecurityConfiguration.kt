@@ -30,7 +30,6 @@ class SecurityConfiguration(
             .csrf { it.disable() }
             .authorizeHttpRequests { auth ->
                 auth
-                    .requestMatchers("/generate/**").permitAll()
                     .requestMatchers("/auth/**").permitAll()
                     .requestMatchers("/v3/api-docs/**").permitAll()
                     .requestMatchers("/swagger-ui/**").permitAll()
