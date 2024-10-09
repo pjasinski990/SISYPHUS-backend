@@ -132,20 +132,8 @@ Now, please divide the task provided above into actionable subtasks. You will ge
                 finishedAt = null
             )
         }
+
         logger.info("New tasks created by LLM: $newTasks")
-
-//        val savedTasks = taskRepository.saveAll(newTasks)
-//        val savedTaskIds = savedTasks.mapNotNull { it.id }
-
-//        val updatedDependencies = task.dependencies?.toMutableList() ?: mutableListOf()
-//        updatedDependencies.addAll(savedTaskIds)
-//        val updatedTask = task.copy(
-//            dependencies = updatedDependencies,
-//            updatedAt = now
-//        )
-
-        // TODO  verify dependencies correct
-//        taskRepository.save(updatedTask)
         return ResponseEntity.ok(newTasks)
     }
 }

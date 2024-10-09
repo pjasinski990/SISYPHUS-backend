@@ -3,6 +3,7 @@ package tech.hexd.adaptiveLearningCompanion.services
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.data.mongodb.core.MongoOperations
+import org.springframework.data.mongodb.core.MongoTemplate
 import org.springframework.data.mongodb.core.query.Criteria
 import org.springframework.data.mongodb.core.query.Query
 import org.springframework.data.mongodb.core.query.Update
@@ -18,6 +19,7 @@ import tech.hexd.adaptiveLearningCompanion.util.ContextHelper
 class TaskService(
     private val taskRepository: TaskRepository,
     private val mongoOperations: MongoOperations,
+    private val mongoTemplate: MongoTemplate
 ) {
     protected val logger: Logger = LoggerFactory.getLogger(UserController::class.java)
 
@@ -83,6 +85,7 @@ class TaskService(
             decrementStatisticsForTask(existingTask)
         }
 
+        removeTaskFromDependencies(taskId)
         return existingTask
     }
 
@@ -122,5 +125,13 @@ class TaskService(
         mongoOperations.updateFirst(query, update, TaskStatistics::class.java)
         val removeQuery = query.addCriteria(Criteria.where("count").`is`(0))
         mongoOperations.remove(removeQuery, TaskStatistics::class.java)
+    }
+
+    private fun removeTaskFromDependencies(taskId: String) {
+        val query = Query(Criteria.where("dependencies").`is`(taskId))
+
+        val update = Update().pull("dependencies", taskId)
+        val updateResult = mongoTemplate.updateMulti(query, update, Task::class.java)
+        logger.info("Updated ${updateResult.modifiedCount} tasks by removing dependency on task ID: $taskId")
     }
 }
