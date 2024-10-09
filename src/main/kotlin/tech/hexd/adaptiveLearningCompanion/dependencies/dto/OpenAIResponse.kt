@@ -28,7 +28,7 @@ data class Message(
 data class ToolCall(
     val id: String,
     val type: String,
-    val function: CalledFunction, // JSON string of arguments
+    val function: CalledFunction,
 )
 
 data class CalledFunction(

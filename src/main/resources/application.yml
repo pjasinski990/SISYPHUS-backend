@@ -2,8 +2,8 @@ spring.application.name: adaptive_learning_companion
 spring.data.mongodb.uri: mongodb://localhost:27017/adaptive_learning_companion
 
 openai.api:
-  model: "gpt-4o-mini"
-  max_tokens: 500
+  model: "o1-mini"
+  max_tokens: 1000
   key: ${OPENAI_API_KEY}
 
 logging.level.root: INFO

@@ -3,10 +3,20 @@ package tech.hexd.adaptiveLearningCompanion.dependencies.dto
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonProperty
-import tech.hexd.adaptiveLearningCompanion.dependencies.dto.OpenAICreateTaskFunction.OpenAICreatedTask
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.SerializationFeature
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import tech.hexd.adaptiveLearningCompanion.repositories.TaskCategory
 import tech.hexd.adaptiveLearningCompanion.repositories.TaskSize
 import java.time.Duration
+
+val objectMapper: ObjectMapper = jacksonObjectMapper()
+    .registerModule(JavaTimeModule())
+    .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+val logger: Logger = LoggerFactory.getLogger("OpenAIChatRequest")
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 data class ChatMessage(
@@ -41,34 +51,45 @@ data class Function(
 )
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
-class OpenAICreateTaskFunction {
-    @JsonIgnoreProperties(ignoreUnknown = true)
-    data class OpenAICreatedTask (
-        val ownerUsername: String,
-        val category: TaskCategory,
-        val size: TaskSize,
-        val title: String,
-        val description: String?,
-        val listName: String,
-        val duration: Duration? = null,
-        val dependencies: List<String>? = null,
-        val flexibility: Float? = null,
-    )
-
+@JsonIgnoreProperties(ignoreUnknown = true)
+data class OpenAICreatedTask(
+    val category: TaskCategory,
+    val size: TaskSize,
+    val title: String,
+    val description: String? = null,
+    val duration: Duration? = null,
+    val flexibility: Float? = null,
+) {
     companion object {
-        private val createTaskSchema: Map<String, Any> = mapOf(
+        val createTaskSchema: Map<String, Any> = mapOf(
             "type" to "object",
             "properties" to mapOf(
-                "ownerUsername" to mapOf("type" to "string"),
-                "category" to mapOf("type" to "string"),
-                "size" to mapOf("type" to "string"),
+                "category" to mapOf(
+                    "type" to "string",
+                    "description" to "" +
+                            "BLUE for domain knowledge in programming, " +
+                            "GREEN for non-domain knowledge, " +
+                            "YELLOW for creative work, " +
+                            "PINK for social activities and relax, " +
+                            "RED for health and exercise, " +
+                            "WHITE for chores and household duties"
+                ),
+                "size" to mapOf(
+                    "type" to "string",
+                    "description" to "SMALL for quick tasks (less than 30 minutes), BIG for big tasks (more than 1.5 hours)"
+                ),
                 "title" to mapOf("type" to "string"),
-                "description" to mapOf("type" to "string"),
-                "listName" to mapOf("type" to "string"),
-                "duration" to mapOf("type" to "string"),
-                "flexibility" to mapOf("type" to "number"),
+                "description" to mapOf("type" to "string", "description" to "markdown format"),
+                "duration" to mapOf(
+                    "type" to "string",
+                    "description" to "iso-8601 time, eg. PT2H"
+                ),
+                "flexibility" to mapOf(
+                    "type" to "number",
+                    "description" to "[0, 1] float. 0 is fixed task, 1 means task can be moved freely. Values between mean task can be rescheduled by n minutes where n lies between 0 and 480"
+                )
             ),
-            "required" to listOf("ownerUsername", "category", "size", "title", "listName")
+            "required" to listOf("category", "size", "title")
         )
 
         private val createTaskFunction = Function(
@@ -77,76 +98,65 @@ class OpenAICreateTaskFunction {
             parameters = createTaskSchema
         )
 
-        val createTaskTool = ToolChoice(
+        private val createTaskTool = ToolChoice(
             type = "function",
             function = createTaskFunction,
         )
 
-        val allTaskFieldsSchema: Map<String, Any> = mapOf(
-            "type" to "object",
-            "properties" to mapOf(
-                "id" to mapOf("type" to "string"),
-                "ownerUsername" to mapOf("type" to "string"),
-                "category" to mapOf("type" to "string"),
-                "size" to mapOf("type" to "string"),
-                "title" to mapOf("type" to "string"),
-                "description" to mapOf("type" to "string"),
-                "listName" to mapOf("type" to "string"),
-                "startTime" to mapOf("type" to "string"),
-                "duration" to mapOf("type" to "string"),
-                "dependencies" to mapOf(
-                    "type" to "array",
-                    "items" to mapOf("type" to "string")
-                ),
-                "flexibility" to mapOf("type" to "number"),
-                "createdAt" to mapOf("type" to "string"),
-                "updatedAt" to mapOf("type" to "string"),
-                "finishedAt" to mapOf("type" to "string"),
-            ),
-            "required" to listOf("ownerUsername", "category")
-        )
+        fun fromJson(json: String): OpenAICreatedTask? {
+            return try {
+                objectMapper.readValue(json, OpenAICreatedTask::class.java)
+            } catch (ex: Exception) {
+                logger.error("Error parsing OpenAICreatedTask: ${ex.message}", ex)
+                null
+            }
+        }
     }
 }
-
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 data class OpenAICreatedTasks(
     val tasks: List<OpenAICreatedTask>
 ) {
     companion object {
-        private val createMultipleTasksSchema: Map<String, Any> = mapOf(
+        private val createTasksSchema: Map<String, Any> = mapOf(
             "type" to "object",
             "properties" to mapOf(
                 "tasks" to mapOf(
                     "type" to "array",
-                    "items" to mapOf(
-                        "type" to "object",
-                        "properties" to mapOf(
-                            "ownerUsername" to mapOf("type" to "string"),
-                            "category" to mapOf("type" to "string"),
-                            "size" to mapOf("type" to "string"),
-                            "title" to mapOf("type" to "string"),
-                            "description" to mapOf("type" to "string"),
-                            "listName" to mapOf("type" to "string"),
-                            "duration" to mapOf("type" to "string"),
-                            "flexibility" to mapOf("type" to "number")
-                        ),
-                        "required" to listOf("ownerUsername", "category", "size", "title", "listName")
-                    )
+                    "items" to OpenAICreatedTask.createTaskSchema
                 )
             ),
             "required" to listOf("tasks")
         )
 
-        private val createMultipleTasksFunction = Function(
-            name = "create_multiple_tasks",
-            description = "Create many tass with the provided information.",
-            parameters = createMultipleTasksSchema
+        private val unravelTaskFunction = Function(
+            name = "unravel_task",
+            description = "Create tasks that divide the provided task into actionable steps.",
+            parameters = createTasksSchema
         )
 
-        val createMultipleTasksTool = ToolChoice(
+        val unravelTaskTool = ToolChoice(
             type = "function",
-            function = createMultipleTasksFunction,
+            function = unravelTaskFunction,
         )
+
+        fun fromJson(json: String): OpenAICreatedTasks? {
+            return try {
+                objectMapper.readValue(json, OpenAICreatedTasks::class.java)
+            } catch (ex: Exception) {
+                logger.error("Error parsing OpenAICreatedTasks: ${ex.message}", ex)
+                null
+            }
+        }
+    }
+}
+
+inline fun <reified T> parseJson(json: String): T? {
+    return try {
+        objectMapper.readValue(json, T::class.java)
+    } catch (ex: Exception) {
+        logger.error("Error parsing JSON to ${T::class.java.simpleName}: ${ex.message}", ex)
+        null
     }
 }
