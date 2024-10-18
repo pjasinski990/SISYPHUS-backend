@@ -28,6 +28,7 @@ import org.springframework.boot.test.autoconfigure.data.mongo.AutoConfigureDataM
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.web.server.LocalServerPort
 import org.springframework.security.crypto.password.PasswordEncoder
+import org.springframework.test.context.TestPropertySource
 import tech.hexd.adaptiveLearningCompanion.AdaptiveLearningCompanionApplication
 import tech.hexd.adaptiveLearningCompanion.controllers.UserController
 import tech.hexd.adaptiveLearningCompanion.controllers.dto.LoginRequest
@@ -45,7 +46,7 @@ import kotlin.math.min
 @AutoConfigureDataMongo
 @SpringBootTest(
     classes = [AdaptiveLearningCompanionApplication::class],
-    webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT
+    webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
 )
 abstract class BaseComponentTest {
 
