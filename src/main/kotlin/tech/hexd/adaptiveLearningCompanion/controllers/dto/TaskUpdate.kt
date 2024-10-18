@@ -24,6 +24,7 @@ data class TaskUpdateRequest(
     @JsonDeserialize(using = LocalDateTimeDeserializer::class)
     @JsonSerialize(using = LocalDateTimeSerializer::class)
     val deadline: LocalDateTime? = null,
+    val tags: List<String>? = null,
     val dependencies: List<String>? = null,
     val flexibility: Float? = null,
     @JsonDeserialize(using = LocalDateTimeDeserializer::class)
@@ -41,6 +42,7 @@ data class TaskUpdateRequest(
             startTime = task.startTime,
             duration = task.duration,
             deadline = task.deadline,
+            tags = task.tags,
             dependencies = task.dependencies,
             flexibility = task.flexibility,
             finishedAt = task.finishedAt,
@@ -59,6 +61,7 @@ data class TaskUpdateRequest(
         startTime = this.startTime,
         duration = this.duration,
         deadline = this.deadline,
+        tags = this.tags,
         dependencies = this.dependencies,
         flexibility = this.flexibility,
         updatedAt = LocalDateTime.now(),

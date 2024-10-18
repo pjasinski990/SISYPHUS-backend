@@ -1,5 +1,8 @@
 logging.level.root: INFO
 
+openai.api:
+  key: "SOME_TEST_KEY"
+
 spring:
   data:
     mongodb:

@@ -12,6 +12,7 @@ import tech.hexd.adaptiveLearningCompanion.dependencies.dto.objectMapper
 import tech.hexd.adaptiveLearningCompanion.repositories.Task
 import tech.hexd.adaptiveLearningCompanion.repositories.TaskRepository
 import java.time.LocalDateTime
+import java.util.*
 
 @Service
 class GenerativeService(
@@ -29,24 +30,35 @@ class GenerativeService(
         }
 
         val task = optionalTask.get()
+        val projectTasks = findOtherProjectTasks(task)
+        println(projectTasks)
         val promptMessage = """
-You are an assistant that is a professional in breaking down tasks into smaller, actionable subtasks.
+You are an planning expert. You excel in breaking down tasks into smaller, actionable subtasks.
 
 Input task:
 ${objectMapper.writeValueAsString(task)}
 
-Additional context:
+Additional context prepared for you to better understand the requirements:
 ${context.additionalContext}
 
+${
+    if (projectTasks.isNotEmpty()) {
+        "This tag belongs to a project. Below are already existing tasks that also belong to this project. Use them for context." +
+        "Take under consideration whether the task is already finished (finishedAt field set) or not. Here are the project tasks:" + 
+        projectTasks.joinToString(separator = "\n") { objectMapper.writeValueAsString(it) }
+    } else ""
+}
+        
 Instructions:
-- Break down the above task into ${context.nTasks} clear, actionable steps required to complete it.
-- For each step add a recommendation on how to tackle it.
+- Break down the above task into clear, actionable steps required to complete it.
+- Based on the complexity of the task, suggest an appropriate number of subtasks that will best divide it into actionable steps.
 - Ensure that the steps are specific and ordered logically.
 - Only include relevant steps necessary for completing the task.
 - Do not include any additional commentary or information.
 - Description should be formatted with markdown. Supported admonitions are [!WARNING] [!INFO] [!TIP] [!CAUTION] [!NOTE] [!DANGER] [!SUCCESS]
-- Use relevant emojis in task titles to add visual flair and to make them distinguishable.
+- Use relevant emojis in task titles to add visual flair.
 - Coding tasks will not include documentation subtasks, code should be self-documenting according to clean code principles.
+- Focus on creating actionable, measurable subtasks. Each subtask should have a specific goal or milestone to achieve.
 
 Example 1:
 Task Details:
@@ -56,13 +68,13 @@ Task Details:
     "category": "BLUE",
     "size": "SMALL",
     "title": "Add periodic tasks tab to menu",
-    "description": "Integrate a new tab in the left menu for accessing periodic tasks"
+    "description": "New tab in the left menu created. It will be used for accessing periodic tasks."
   },
   {
     "category": "BLUE",
     "size": "BIG",
     "title": "Implement daily, weekly, monthly scheduling logic",
-    "description": "Develop backend logic to handle tasks scheduled daily\n> [!NOTE] Design choices: When implementing scheduling logic, account for edge cases like leap years, daylight saving changes, and variations in month lengths.\n> - Modularity: Keep the logic modular so it can be expanded in the future. For example, implement a strategy pattern to support additional recurrence patterns like bi-weekly or yearly.\n> - Database structure: Ensure that the MongoDB schema is optimized for periodic tasks. Consider how you'll store recurring tasks efficiently without duplicating data.\n> - Testing: Use time-based testing tools (e.g., Time Machine libraries in Kotlin) to simulate future dates and validate the scheduling over time."
+    "description": "Develop backend logic to handle the task scheduling \n> [!NOTE] Design choices: When implementing scheduling logic, account for edge cases like leap years, daylight saving changes, and variations in month lengths.\n> - Modularity: Keep the logic modular so it can be expanded in the future. For example, implement a strategy pattern to support additional recurrence patterns like bi-weekly or yearly.\n> - Database structure: Ensure that the MongoDB schema is optimized for periodic tasks. Consider how you'll store recurring tasks efficiently without duplicating data.\n> - Testing: Use time-based testing tools (e.g., Time Machine libraries in Kotlin) to simulate future dates and validate the scheduling over time."
   },
   {
     "category": "BLUE",
@@ -104,7 +116,7 @@ Subtasks:
   }
 ]
 
-Now, please divide the task provided above into actionable subtasks. You will generate exactly ${context.nTasks} subtasks""".trimIndent()
+Now, please divide the task provided above into actionable subtasks.""".trimIndent()
 
         val response = openAIService.getLLMResponse(promptMessage, unravelTaskTool)
             ?: throw Exception("Error getting unravel response from LLM provider")
@@ -116,24 +128,39 @@ Now, please divide the task provided above into actionable subtasks. You will ge
         val now = LocalDateTime.now()
         val newTasks = tasks.map { openAITask ->
             Task(
+                id = UUID.randomUUID().toString(),
                 ownerUsername = task.ownerUsername,
                 category = openAITask.category,
                 size = openAITask.size,
                 title = openAITask.title,
                 description = openAITask.description,
                 listName = "INBOX",
-                createdAt = now,
-                updatedAt = now,
+                tags = extractProjectTags(task.tags ?: emptyList()),
                 dependencies = null,
                 startTime = null,
                 duration = openAITask.duration,
                 deadline = null,
                 flexibility = openAITask.flexibility,
+                createdAt = now,
+                updatedAt = now,
                 finishedAt = null
             )
         }
 
         logger.info("New tasks created by LLM: $newTasks")
         return ResponseEntity.ok(newTasks)
+    }
+
+    private fun findOtherProjectTasks(task: Task): List<Task> {
+        if (task.tags.isNullOrEmpty()) {
+            return emptyList()
+        }
+
+        val projectTags = extractProjectTags(task.tags)
+        return taskRepository.findByContainsTag(projectTags).filter { it.id != task.id }
+    }
+
+    private fun extractProjectTags(tags: List<String>): List<String> {
+        return tags.filter { it.startsWith("p:") }
     }
 }

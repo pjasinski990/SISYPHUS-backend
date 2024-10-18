@@ -46,7 +46,7 @@ class OpenAIService(
                 maxCompletionTokens = maxCompletionTokens,
                 temperature = null,
                 tools = listOf(tool),
-                toolChoice = tool,
+                toolChoice = "auto",
             )
         } else {
             requestBody = OpenAIChatRequest(

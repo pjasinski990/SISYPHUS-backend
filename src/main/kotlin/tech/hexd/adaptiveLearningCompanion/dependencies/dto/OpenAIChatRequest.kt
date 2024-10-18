@@ -89,7 +89,7 @@ data class OpenAICreatedTask(
                     "description" to "[0, 1] float. 0 is fixed task, 1 means task can be moved freely. Values between mean task can be rescheduled by n minutes where n lies between 0 and 480"
                 )
             ),
-            "required" to listOf("category", "size", "title")
+            "required" to listOf("category", "size", "title", "description", "duration", "flexibility"),
         )
 
         private val createTaskFunction = Function(

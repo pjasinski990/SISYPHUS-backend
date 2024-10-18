@@ -10,6 +10,7 @@ import org.springframework.data.mongodb.core.query.Update
 import org.springframework.security.access.AccessDeniedException
 import org.springframework.stereotype.Service
 import tech.hexd.adaptiveLearningCompanion.controllers.UserController
+import tech.hexd.adaptiveLearningCompanion.repositories.TagStatistics
 import tech.hexd.adaptiveLearningCompanion.repositories.Task
 import tech.hexd.adaptiveLearningCompanion.repositories.TaskRepository
 import tech.hexd.adaptiveLearningCompanion.repositories.TaskStatistics
@@ -35,7 +36,7 @@ class TaskService(
 
     fun createNewTaskForCurrentUser(newTask: Task): Task {
         val username = ContextHelper.getCurrentlyLoggedUsername()
-        val taskWithOwner = newTask.copy(ownerUsername = username)
+        val taskWithOwner = newTask.copy(id = null, ownerUsername = username)
         return taskRepository.save(taskWithOwner)
     }
 
@@ -108,6 +109,17 @@ class TaskService(
 
         val update = Update().inc("count", 1)
         mongoOperations.upsert(query, update, TaskStatistics::class.java)
+
+        task.tags?.forEach { tag ->
+            val tagQuery = Query(
+                Criteria.where("date").`is`(date)
+                    .and("ownerUsername").`is`(username)
+                    .and("tag").`is`(tag)
+            )
+
+            val tagUpdate = Update().inc("count", 1)
+            mongoOperations.upsert(tagQuery, tagUpdate, TagStatistics::class.java)
+        }
     }
 
     private fun decrementStatisticsForTask(task: Task) {
@@ -125,6 +137,19 @@ class TaskService(
         mongoOperations.updateFirst(query, update, TaskStatistics::class.java)
         val removeQuery = query.addCriteria(Criteria.where("count").`is`(0))
         mongoOperations.remove(removeQuery, TaskStatistics::class.java)
+
+        task.tags?.forEach { tag ->
+            val tagQuery = Query(
+                Criteria.where("date").`is`(date)
+                    .and("ownerUsername").`is`(username)
+                    .and("tag").`is`(tag)
+            )
+
+            val tagUpdate = Update().inc("count", -1)
+            mongoOperations.updateFirst(tagQuery, tagUpdate, TagStatistics::class.java)
+            val tagRemoveQuery = tagQuery.addCriteria(Criteria.where("count").`is`(0))
+            mongoOperations.remove(tagRemoveQuery, TagStatistics::class.java)
+        }
     }
 
     private fun removeTaskFromDependencies(taskId: String) {

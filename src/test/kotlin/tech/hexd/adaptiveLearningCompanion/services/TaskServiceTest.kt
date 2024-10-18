@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.data.mongodb.core.MongoOperations
+import org.springframework.data.mongodb.core.MongoTemplate
 import org.springframework.data.mongodb.core.query.Query
 import org.springframework.data.mongodb.core.query.Update
 import tech.hexd.adaptiveLearningCompanion.repositories.*
@@ -17,6 +18,7 @@ class TaskServiceTest {
     private lateinit var taskRepository: TaskRepository
     private lateinit var taskStatisticsRepository: TaskStatisticsRepository
     private lateinit var mongoOperations: MongoOperations
+    private lateinit var mongoTemplate: MongoTemplate
     private lateinit var taskService: TaskService
 
     @BeforeEach
@@ -24,7 +26,8 @@ class TaskServiceTest {
         taskRepository = mockk(relaxed = true)
         taskStatisticsRepository = mockk(relaxed = true)
         mongoOperations = mockk(relaxed = true)
-        taskService = TaskService(taskRepository, mongoOperations)
+        mongoTemplate = mockk(relaxed = true)
+        taskService = TaskService(taskRepository, mongoOperations, mongoTemplate)
 
         mockkObject(ContextHelper.Companion)
         every { ContextHelper.getCurrentlyLoggedUsername() } returns "testUser"

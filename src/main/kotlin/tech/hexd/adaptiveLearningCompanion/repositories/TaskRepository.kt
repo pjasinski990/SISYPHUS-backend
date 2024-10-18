@@ -9,6 +9,7 @@ import org.springframework.data.annotation.Id
 import org.springframework.data.mongodb.core.index.Indexed
 import org.springframework.data.mongodb.core.mapping.Document
 import org.springframework.data.mongodb.repository.MongoRepository
+import org.springframework.data.mongodb.repository.Query
 import org.springframework.stereotype.Repository
 import java.time.Duration
 import java.time.LocalDateTime
@@ -45,6 +46,8 @@ data class Task (
     @JsonSerialize(using = LocalDateTimeSerializer::class)
     val deadline: LocalDateTime? = null,
     @Indexed
+    val tags: List<String>? = null,
+    @Indexed
     val dependencies: List<String>? = null,
     val flexibility: Float? = null,
     @JsonDeserialize(using = LocalDateTimeDeserializer::class)
@@ -62,4 +65,7 @@ data class Task (
 interface TaskRepository : MongoRepository<Task, String> {
     fun findByOwnerUsername(ownerUsername: String): List<Task>
     fun findByOwnerUsernameAndListName(ownerUsername: String, listName: String): List<Task>
+
+    @Query("{ 'tags': { \$in: ?0 } }")
+    fun findByContainsTag(tags: List<String>): List<Task>
 }
