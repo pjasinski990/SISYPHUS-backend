@@ -76,12 +76,6 @@ dependencies {
 	componentTestRuntimeOnly("io.jsonwebtoken:jjwt-jackson:0.11.5")
 }
 
-kotlin {
-	compilerOptions {
-		freeCompilerArgs.addAll("-Xjsr305=strict")
-	}
-}
-
 sourceSets {
 	create("componentTest") {
 		compileClasspath += sourceSets.main.get().output
