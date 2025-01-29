@@ -1,3 +1,0 @@
-fastapi
-uvicorn[standard]
-# Add other dependencies like transformers, torch, etc.

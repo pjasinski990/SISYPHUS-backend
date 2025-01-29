@@ -15,7 +15,6 @@ services:
       - OPENAI_API_KEY=${OPENAI_API_KEY}
     depends_on:
       - mongodb
-      - fastapi-server
     networks:
       - backend
 
@@ -25,14 +24,6 @@ services:
       - "27017:27017"
     volumes:
       - mongodb_data:/data/db
-    networks:
-      - backend
-
-  fastapi-server:
-    build:
-      context: ./fastapi-server
-    ports:
-      - "8000:8000"
     networks:
       - backend
 
