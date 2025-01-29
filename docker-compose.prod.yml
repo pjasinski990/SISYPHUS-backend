@@ -1,15 +1,9 @@
 version: '3.8'
 services:
   sisyphus-backend:
-    build:
-      context: .
-      dockerfile: ${DOCKERFILE:-Dockerfile.prod}
-    image: sisyphus-backend
+    image: ${DOCKER_REGISTRY_URL}/${TAG_NAME}
     ports:
       - "8080:8080"
-    volumes:
-      - ${APP_VOLUME:-./}:/app
-      - ${GRADLE_CACHE_VOLUME:-gradle-cache}:/root/.gradle
     environment:
       - SPRING_DATA_MONGODB_URI=mongodb://mongodb:27017/sisyphus
       - SPRING_PROFILES_ACTIVE=${SPRING_PROFILE:-default}
