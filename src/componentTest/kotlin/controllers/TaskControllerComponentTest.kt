@@ -10,8 +10,8 @@ import org.hamcrest.Matchers.notNullValue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.http.HttpStatus
-import tech.hexd.adaptiveLearningCompanion.controllers.dto.TaskCreateRequest
-import tech.hexd.adaptiveLearningCompanion.controllers.dto.TaskUpdateRequest
+import space.hexd.sisyphusBackend.controllers.dto.TaskCreateRequest
+import space.hexd.sisyphusBackend.controllers.dto.TaskUpdateRequest
 
 class TaskControllerComponentTest: BaseComponentTest() {
     private lateinit var testUserJwt: String

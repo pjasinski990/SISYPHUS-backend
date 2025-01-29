@@ -10,7 +10,7 @@ import org.hamcrest.Matchers.equalTo
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.http.HttpStatus
-import tech.hexd.adaptiveLearningCompanion.controllers.dto.TaskUpdateRequest
+import space.hexd.sisyphusBackend.controllers.dto.TaskUpdateRequest
 import java.time.LocalDate
 
 class TaskStatisticsControllerComponentTest : BaseComponentTest() {

@@ -1,6 +1,6 @@
 version: '3.8'
 services:
-  spring-app:
+  sisyphus-backend:
     build:
       context: .
       dockerfile: ${DOCKERFILE:-Dockerfile.prod}
@@ -10,7 +10,7 @@ services:
       - ${APP_VOLUME:-./}:/app
       - ${GRADLE_CACHE_VOLUME:-gradle-cache}:/root/.gradle
     environment:
-      - SPRING_DATA_MONGODB_URI=mongodb://mongodb:27017/adaptive_learning_companion
+      - SPRING_DATA_MONGODB_URI=mongodb://mongodb:27017/sisyphus
       - SPRING_PROFILES_ACTIVE=${SPRING_PROFILE:-default}
       - OPENAI_API_KEY=${OPENAI_API_KEY}
     depends_on:

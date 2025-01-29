@@ -9,9 +9,9 @@ import io.restassured.module.kotlin.extensions.When
 import io.restassured.response.Response
 import org.hamcrest.Matchers.hasKey
 import org.springframework.http.HttpStatus
-import tech.hexd.adaptiveLearningCompanion.controllers.dto.LoginRequest
-import tech.hexd.adaptiveLearningCompanion.controllers.dto.RegisterRequest
-import tech.hexd.adaptiveLearningCompanion.repositories.AppUser
+import space.hexd.sisyphusBackend.controllers.dto.LoginRequest
+import space.hexd.sisyphusBackend.controllers.dto.RegisterRequest
+import space.hexd.sisyphusBackend.repositories.AppUser
 import kotlin.test.Test
 
 class AuthControllerComponentTest: BaseComponentTest() {

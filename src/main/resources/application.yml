@@ -1,5 +1,5 @@
-spring.application.name: adaptive_learning_companion
-spring.data.mongodb.uri: mongodb://localhost:27017/adaptive_learning_companion
+spring.application.name: sisyphus
+spring.data.mongodb.uri: mongodb://localhost:27017/sisyphus
 
 openai.api:
   model: "gpt-4o"

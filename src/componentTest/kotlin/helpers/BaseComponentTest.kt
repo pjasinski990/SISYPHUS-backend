@@ -28,24 +28,20 @@ import org.springframework.boot.test.autoconfigure.data.mongo.AutoConfigureDataM
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.web.server.LocalServerPort
 import org.springframework.security.crypto.password.PasswordEncoder
-import org.springframework.test.context.TestPropertySource
-import tech.hexd.adaptiveLearningCompanion.AdaptiveLearningCompanionApplication
-import tech.hexd.adaptiveLearningCompanion.controllers.UserController
-import tech.hexd.adaptiveLearningCompanion.controllers.dto.LoginRequest
-import tech.hexd.adaptiveLearningCompanion.repositories.*
+import space.hexd.sisyphusBackend.controllers.UserController
+import space.hexd.sisyphusBackend.controllers.dto.LoginRequest
+import space.hexd.sisyphusBackend.repositories.*
 import java.time.Duration
-import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
 import java.util.*
-import kotlin.math.min
 
 @Suppress("SpringJavaInjectionPointsAutowiringInspection")
 @AutoConfigureDataMongo
 @SpringBootTest(
-    classes = [AdaptiveLearningCompanionApplication::class],
+    classes = [space.hexd.sisyphusBackend.SisyphusBackendApplication::class],
     webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
 )
 abstract class BaseComponentTest {

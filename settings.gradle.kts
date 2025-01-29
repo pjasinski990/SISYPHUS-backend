@@ -1,1 +1,1 @@
-rootProject.name = "adaptiveLearningCompanion"
+rootProject.name = "sisyphus-backend"
