@@ -1,16 +1,29 @@
 pipeline {
     agent any
-    environment {
-        DOCKER_IMAGE_NAME = "sisyphus-backend"
-        DOCKER_REGISTRY_URL = "${env.DOCKER_REGISTRY_URL}"
-        DEPLOY_TARGET_HOST = "${env.DEPLOY_TARGET_HOST}"
-        DEPLOY_USER = "${env.DEPLOY_USER}"
 
-        DEPLOY_TARGET_DIR = "/home/${DEPLOY_USER}/${DOCKER_IMAGE_NAME}"
-        TAG_NAME = ""
+    options {
+        skipDefaultCheckout(true)
+    }
+
+    environment {
+        DOCKER_IMAGE_NAME    = "sisyphus-backend"
+        DOCKER_REGISTRY_URL  = "${env.DOCKER_REGISTRY_URL}"
+        DEPLOY_TARGET_HOST   = "${env.DEPLOY_TARGET_HOST}"
+        DEPLOY_USER          = "${env.DEPLOY_USER}"
+
+        DEPLOY_TARGET_DIR    = "/home/${DEPLOY_USER}/${DOCKER_IMAGE_NAME}"
+        TAG_NAME             = ""
     }
 
     stages {
+        stage('Initialize') {
+            steps {
+                cleanWs()
+                sh "docker-compose -p ${DOCKER_IMAGE_NAME} down || true"
+                sh "docker system prune -af || true"
+            }
+        }
+
         stage('Checkout') {
             steps {
                 checkout scm
@@ -41,6 +54,7 @@ pipeline {
                         DEPLOY_USER: ${DEPLOY_USER}
                         DEPLOY_TARGET_HOST: ${DEPLOY_TARGET_HOST}
                     """
+
                     def commitHash = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
                     TAG_NAME = "${DOCKER_IMAGE_NAME}:${commitHash}"
 
@@ -77,6 +91,14 @@ pipeline {
                     """
                 }
             }
+        }
+    }
+
+    post {
+        always {
+            cleanWs()
+            sh "docker-compose -p ${DOCKER_IMAGE_NAME} down || true"
+            sh "docker system prune -af || true"
         }
     }
 }
