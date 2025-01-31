@@ -12,7 +12,7 @@ is my attempt at a custom task scheduler and day planner.
 
 1. Clone this repository:
    ```shell
-   git clone git@github.com:pjasinski990/SISYPHUS-backend.git
+   git clone https://github.com/pjasinski990/SISYPHUS-backend.git
    cd SISYPHUS-backend
    ```
    

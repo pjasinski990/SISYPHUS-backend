@@ -6,13 +6,14 @@ pipeline {
     }
 
     environment {
-        DOCKER_IMAGE_NAME    = "sisyphus-backend"
-        DOCKER_REGISTRY_URL  = "${env.DOCKER_REGISTRY_URL}"
-        DEPLOY_TARGET_HOST   = "${env.DEPLOY_TARGET_HOST}"
-        DEPLOY_USER          = "${env.DEPLOY_USER}"
+        DOCKER_IMAGE_NAME             = "sisyphus-backend"
+        DOCKER_REGISTRY_URL           = "${env.DOCKER_REGISTRY_URL}"
+        DEPLOY_TARGET_HOST            = "${env.DEPLOY_TARGET_HOST}"
+        DEPLOY_USER                   = "${env.DEPLOY_USER}"
+        SISYPHUS_FRONTEND_HOSTNAME    = "${env.SISYPHUS_FRONTEND_HOSTNAME}"
 
-        DEPLOY_TARGET_DIR    = "/home/${DEPLOY_USER}/${DOCKER_IMAGE_NAME}"
-        TAG_NAME             = ""
+        DEPLOY_TARGET_DIR             = "/home/${DEPLOY_USER}/${DOCKER_IMAGE_NAME}"
+        TAG_NAME                      = ""
     }
 
     stages {
@@ -51,8 +52,9 @@ pipeline {
                     echo """Running deploy for:
                         DOCKER_IMAGE_NAME: ${DOCKER_IMAGE_NAME}
                         DOCKER_REGISTRY_URL: ${DOCKER_REGISTRY_URL}
-                        DEPLOY_USER: ${DEPLOY_USER}
                         DEPLOY_TARGET_HOST: ${DEPLOY_TARGET_HOST}
+                        DEPLOY_USER: ${DEPLOY_USER}
+                        SISYPHUS_FRONTEND_HOSTNAME: ${SISYPHUS_FRONTEND_HOSTNAME}
                     """
 
                     def commitHash = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
@@ -78,6 +80,9 @@ pipeline {
                         export DOCKER_REGISTRY_URL=${DOCKER_REGISTRY_URL}
                         export TAG_NAME=${TAG_NAME}
 
+                        ssh -o StrictHostKeyChecking=no ${DEPLOY_USER}@${DEPLOY_TARGET_HOST} \\
+                            "mkdir -p ${DEPLOY_TARGET_DIR}"
+
                         scp -o StrictHostKeyChecking=no \
                             docker-compose.prod.yml \
                             ${DEPLOY_USER}@${DEPLOY_TARGET_HOST}:${DEPLOY_TARGET_DIR}/docker-compose.yml
@@ -85,7 +90,9 @@ pipeline {
                         ssh -o StrictHostKeyChecking=no ${DEPLOY_USER}@${DEPLOY_TARGET_HOST} \\
                             "cd ${DEPLOY_TARGET_DIR} \
                                 && export DOCKER_REGISTRY_URL=${DOCKER_REGISTRY_URL} \
-                                && export TAG_NAME=${TAG_NAME} && docker-compose pull \
+                                && export TAG_NAME=${TAG_NAME} \
+                                && export SISYPHUS_FRONTEND_HOSTNAME=${SISYPHUS_FRONTEND_HOSTNAME} \
+                                && docker-compose pull \
                                 && docker-compose down && docker image prune -f && docker-compose up -d
                             "
                     """

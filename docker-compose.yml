@@ -14,6 +14,7 @@ services:
       - SPRING_DATA_MONGODB_URI=mongodb://mongodb:27017/sisyphus
       - SPRING_PROFILES_ACTIVE=${SPRING_PROFILE:-default}
       - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - SISYPHUS_FRONTEND_HOSTNAME=${SISYPHUS_FRONTEND_HOSTNAME}
     depends_on:
       - mongodb
     networks:

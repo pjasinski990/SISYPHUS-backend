@@ -13,9 +13,9 @@ class CorsConfig(private val env: Environment) {
     @Bean
     fun corsConfigurationSource(): CorsConfigurationSource {
         val configuration = CorsConfiguration()
-        val prodHostname = env.getProperty("PROD_HOSTNAME") ?: "your-default-hostname.com"
+        val frontendHostname = env.getProperty("SISYPHUS_FRONTEND_HOSTNAME")
 
-        configuration.allowedOrigins = listOf("http://localhost:3000", "https://$prodHostname")
+        configuration.allowedOrigins = listOf("http://localhost:3000", "https://$frontendHostname")
         configuration.allowedMethods = listOf("GET", "POST", "PUT", "DELETE", "OPTIONS")
         configuration.allowedHeaders = listOf("*")
         configuration.allowCredentials = true
