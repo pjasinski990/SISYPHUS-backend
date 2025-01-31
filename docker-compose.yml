@@ -3,7 +3,7 @@ services:
   sisyphus-backend:
     build:
       context: .
-      dockerfile: ${DOCKERFILE:-Dockerfile.prod}
+      dockerfile: ${DOCKERFILE:-Dockerfile.dev}
     image: sisyphus-backend
     ports:
       - "8080:8080"
