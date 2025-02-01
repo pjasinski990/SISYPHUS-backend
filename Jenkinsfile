@@ -11,6 +11,7 @@ pipeline {
         DEPLOY_TARGET_HOST            = "${env.DEPLOY_TARGET_HOST}"
         DEPLOY_USER                   = "${env.DEPLOY_USER}"
         SISYPHUS_FRONTEND_HOSTNAME    = "${env.SISYPHUS_FRONTEND_HOSTNAME}"
+        OPENAI_API_KEY                = "${env.OPENAI_API_KEY}"
 
         DEPLOY_TARGET_DIR             = "/home/${DEPLOY_USER}/${DOCKER_IMAGE_NAME}"
         TAG_NAME                      = ""
@@ -55,6 +56,7 @@ pipeline {
                         DEPLOY_TARGET_HOST: ${DEPLOY_TARGET_HOST}
                         DEPLOY_USER: ${DEPLOY_USER}
                         SISYPHUS_FRONTEND_HOSTNAME: ${SISYPHUS_FRONTEND_HOSTNAME}
+                        OPENAI_API_KEY: ${OPENAI_API_KEY}
                     """
 
                     def commitHash = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
@@ -77,9 +79,6 @@ pipeline {
             steps {
                 script {
                     sh """
-                        export DOCKER_REGISTRY_URL=${DOCKER_REGISTRY_URL}
-                        export TAG_NAME=${TAG_NAME}
-
                         ssh -o StrictHostKeyChecking=no ${DEPLOY_USER}@${DEPLOY_TARGET_HOST} \\
                             "mkdir -p ${DEPLOY_TARGET_DIR}"
 
@@ -92,6 +91,7 @@ pipeline {
                                 && export DOCKER_REGISTRY_URL=${DOCKER_REGISTRY_URL} \
                                 && export TAG_NAME=${TAG_NAME} \
                                 && export SISYPHUS_FRONTEND_HOSTNAME=${SISYPHUS_FRONTEND_HOSTNAME} \
+                                && export OPENAI_API_KEY=${OPENAI_API_KEY} \
                                 && docker-compose pull \
                                 && docker-compose down && docker image prune -f && docker-compose up -d
                             "
