@@ -8,9 +8,9 @@ import java.util.Date
 
 @Component
 class JwtUtil {
+    private final val fifteenMinutesMs = 1000 * 60 * 15
+    private val expirationMs = fifteenMinutesMs
     private val secret = Keys.secretKeyFor(SignatureAlgorithm.HS256)
-    private val expirationMs = 600 * 1000
-
 
     fun generateToken(username: String, expiration: Int = expirationMs): String {
         return Jwts.builder()

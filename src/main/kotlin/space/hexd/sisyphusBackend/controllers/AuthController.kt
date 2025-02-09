@@ -40,9 +40,9 @@ class AuthController @Autowired constructor(
             return ResponseEntity.badRequest().body(LoginResponse("Invalid password", null, null))
         }
 
-        val refreshToken = UUID.randomUUID().toString()
-        val userWithToken = user.copy(refreshToken = refreshToken)
-        appUserRepository.save(userWithToken)
+        val refreshToken = generateRefreshToken()
+        val refreshedUser = user.copy(refreshToken = refreshToken)
+        appUserRepository.save(refreshedUser)
 
         val token = jwtUtil.generateToken(user.username)
         return ResponseEntity.ok().body(LoginResponse("Login successful", token, refreshToken))
@@ -50,15 +50,18 @@ class AuthController @Autowired constructor(
 
     @PostMapping("/refresh")
     fun refreshToken(@RequestBody refreshTokenRequest: RefreshTokenRequest): ResponseEntity<LoginResponse> {
-        val refreshToken = refreshTokenRequest.refreshToken
-        val user = appUserRepository.findByRefreshToken(refreshToken)
+        val oldRefreshToken = refreshTokenRequest.refreshToken
+        val user = appUserRepository.findByRefreshToken(oldRefreshToken)
             ?: return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                 .body(LoginResponse("Invalid refresh token", null, null))
 
-        val newToken = jwtUtil.generateToken(user.username)
+        val newJwt = jwtUtil.generateToken(user.username)
+        val newRefreshToken = generateRefreshToken()
+        val refreshedUser = user.copy(refreshToken = newRefreshToken)
+        appUserRepository.save(refreshedUser)
 
         return ResponseEntity.ok()
-            .body(LoginResponse("Token refreshed", newToken, null))
+            .body(LoginResponse("Token refreshed", newJwt, newRefreshToken))
     }
 
     private fun registerUser(username: String, password: String) {
@@ -69,4 +72,6 @@ class AuthController @Autowired constructor(
         )
         appUserRepository.save(appUser)
     }
+
+    private fun generateRefreshToken(): String = UUID.randomUUID().toString()
 }
