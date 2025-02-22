@@ -12,12 +12,9 @@ data class AppUser (
     val username: String,
     val password: String,
     val roles: List<String>,
-    val refreshToken: String? = null,
 )
 
 @Repository
 interface AppUserRepository : MongoRepository<AppUser, String> {
     fun findByUsername(username: String): AppUser?
-
-    fun findByRefreshToken(refreshToken: String): AppUser?
 }

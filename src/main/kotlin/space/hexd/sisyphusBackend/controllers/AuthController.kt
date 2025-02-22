@@ -11,13 +11,17 @@ import org.springframework.web.bind.annotation.RestController
 import space.hexd.sisyphusBackend.controllers.dto.*
 import space.hexd.sisyphusBackend.repositories.AppUser
 import space.hexd.sisyphusBackend.repositories.AppUserRepository
+import space.hexd.sisyphusBackend.repositories.RefreshToken
+import space.hexd.sisyphusBackend.repositories.RefreshTokenRepository
 import space.hexd.sisyphusBackend.util.JwtUtil
+import java.time.LocalDateTime
 import java.util.*
 
 @RestController
 @RequestMapping("/auth")
 class AuthController @Autowired constructor(
     private val appUserRepository: AppUserRepository,
+    private val refreshTokenRepository: RefreshTokenRepository,
     private val passwordEncoder: PasswordEncoder,
     private val jwtUtil: JwtUtil
 ) {
@@ -40,28 +44,36 @@ class AuthController @Autowired constructor(
             return ResponseEntity.badRequest().body(LoginResponse("Invalid password", null, null))
         }
 
-        val refreshToken = generateRefreshToken()
-        val refreshedUser = user.copy(refreshToken = refreshToken)
-        appUserRepository.save(refreshedUser)
+        val refreshTokenValue = generateRefreshToken()
+        val expiryDateTime = LocalDateTime.now().plusDays(30)
+        refreshTokenRepository.save(RefreshToken(token = refreshTokenValue, user = user, expiryDateTime = expiryDateTime))
 
         val token = jwtUtil.generateToken(user.username)
-        return ResponseEntity.ok().body(LoginResponse("Login successful", token, refreshToken))
+        return ResponseEntity.ok().body(LoginResponse("Login successful", token, refreshTokenValue))
     }
 
     @PostMapping("/refresh")
     fun refreshToken(@RequestBody refreshTokenRequest: RefreshTokenRequest): ResponseEntity<LoginResponse> {
         val oldRefreshToken = refreshTokenRequest.refreshToken
-        val user = appUserRepository.findByRefreshToken(oldRefreshToken)
+        val refreshToken = refreshTokenRepository.findByToken(oldRefreshToken)
             ?: return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                 .body(LoginResponse("Invalid refresh token", null, null))
 
+        if (refreshToken.expiryDateTime.isBefore(LocalDateTime.now())) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(LoginResponse("Refresh token expired", null, null))
+        }
+
+        val user = refreshToken.user
         val newJwt = jwtUtil.generateToken(user.username)
-        val newRefreshToken = generateRefreshToken()
-        val refreshedUser = user.copy(refreshToken = newRefreshToken)
-        appUserRepository.save(refreshedUser)
+        val newRefreshTokenValue = generateRefreshToken()
+        val newExpiryDateTime = LocalDateTime.now().plusDays(30)
+
+        refreshTokenRepository.delete(refreshToken)
+        refreshTokenRepository.save(RefreshToken(token = newRefreshTokenValue, user = user, expiryDateTime = newExpiryDateTime))
 
         return ResponseEntity.ok()
-            .body(LoginResponse("Token refreshed", newJwt, newRefreshToken))
+            .body(LoginResponse("Token refreshed", newJwt, newRefreshTokenValue))
     }
 
     private fun registerUser(username: String, password: String) {
