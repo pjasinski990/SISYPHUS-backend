@@ -2,7 +2,7 @@ spring.application.name: sisyphus-backend
 spring.data.mongodb.uri: mongodb://localhost:27017/sisyphus
 
 openai.api:
-  model: "gpt-4o"
+  model: "o3-mini"
   max_tokens: 1000
   key: ${OPENAI_API_KEY}
 

@@ -28,7 +28,7 @@ data class ChatMessage(
 data class OpenAIChatRequest(
     val model: String,
     val messages: List<ChatMessage>,
-    @JsonProperty("max_tokens")
+    @JsonProperty("max_completion_tokens")
     val maxCompletionTokens: Int,
     val temperature: Double? = null,
     val functions: List<Map<String, Any>>? = null,
