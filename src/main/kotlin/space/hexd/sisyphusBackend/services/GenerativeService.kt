@@ -55,10 +55,12 @@ Instructions:
 - Ensure that the steps are specific and ordered logically.
 - Only include relevant steps necessary for completing the task.
 - Do not include any additional commentary or information.
-- Description should be formatted with markdown. Supported admonitions are [!WARNING] [!INFO] [!TIP] [!CAUTION] [!NOTE] [!DANGER] [!SUCCESS]
+- Description should be formatted with markdown. Supported admonitions are [!WARNING] [!INFO] [!TIP] [!CAUTION] [!NOTE] [!DANGER] [!SUCCESS]. 
+Before outputting each subtask, think whether there is a good admonition to be added. Add only necessary and important admonitions.
 - Use relevant emojis in task titles to add visual flair.
-- Coding tasks will not include documentation subtasks, code should be self-documenting according to clean code principles.
+- Coding tasks will not include documentation subtasks.
 - Focus on creating actionable, measurable subtasks. Each subtask should have a specific goal or milestone to achieve.
+- Make sure to output valid JSON.
 
 Example 1:
 Task Details:
@@ -102,7 +104,7 @@ Subtasks:
     "category": "RED",
     "size": "BIG",
     "title": "🔥 Complete workout session",
-    "description": "Perform scheduled exercises at the gym. \n> [!TIP] Play your favourite music.",
+    "description": "Perform scheduled exercises at the gym. \n> [!TIP] Temptation bundling: Play your favourite podcast only when working out to make the workout more tempting.",
     "duration": "PT1H30M",
     "flexibility": 0.3
   },
